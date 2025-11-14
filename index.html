@@ -1,10 +1,10 @@
 <!--
-Apollo STEM Academy - Single-file GitHub Pages Template (Third-Party AI Chat)
+Apollo STEM Academy - Single-file GitHub Pages Template (Zapier AI Tutor)
 
 Instructions:
-1. Save as index.html and push to your GitHub repo.
+1. Save this file as index.html and push to your GitHub repo.
 2. Replace ENROLL_FORM_URL and VOLUNTEER_FORM_URL with your actual Google Form links.
-3. AI Tutor powered by external embed (no Cloudflare Worker needed).
+3. The Live AI Tutor uses Zapier Interfaces (ensure your chatbot is active and domain-whitelisted).
 -->
 
 <!doctype html>
@@ -16,6 +16,7 @@ Instructions:
   <meta name="description" content="Apollo STEM Academy — Private AI + Teacher-guided tutoring for grades 1–12. Limited founding free enrollment." />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* Cinematic touches */
     .hero-bg { background: radial-gradient(ellipse at top left, rgba(99,102,241,0.18), transparent 20%), linear-gradient(180deg,rgba(17,24,39,0.9), rgba(0,0,0,0.6)); }
     .glass { background: rgba(255,255,255,0.04); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
   </style>
@@ -67,19 +68,24 @@ Instructions:
         </div>
       </div>
 
-      <!-- HERO VISUAL: EXTERNAL AI CHAT EMBED -->
+      <!-- HERO VISUAL: ZAPIER AI TUTOR -->
       <div class="flex-1">
         <div class="rounded-3xl overflow-hidden glass p-6 shadow-2xl">
           <div class="mb-4">
             <div class="text-sm text-gray-300">Live Demo — AI Tutor</div>
-            <div class="text-xs text-gray-500">(Powered by third-party AI)</div>
+            <div class="text-xs text-gray-500">Powered by Apollo’s AI engine</div>
           </div>
-
-          <!-- Third-party chat embed -->
-          <div class="w-full h-96 rounded-lg border border-gray-700 bg-gray-900 p-4">
-            <!-- The embed will auto-inject a chat widget -->
-            <script src='//fw-cdn.com/15212567/6621406.js' chat='true'></script>
+          <div class="w-full h-96 flex items-center justify-center bg-gray-900 rounded-lg border border-gray-700">
+            <p class="text-gray-500 text-sm">Loading AI tutor...</p>
           </div>
+          <!-- Zapier Interfaces Embed -->
+          <script async type="module" src="https://interfaces.zapier.com/assets/web-components/zapier-interfaces/zapier-interfaces.esm.js"></script>
+          <zapier-interfaces-chatbot-embed 
+            is-popup="true" 
+            chatbot-id="cmhya2xr0000dktpydkp500q3"
+            button-label="Ask the AI Tutor"
+            button-color="#4f46e5">
+          </zapier-interfaces-chatbot-embed>
           <div class="mt-4 text-xs text-gray-400">Tip: Ask the AI a specific question like "Explain fractions for grade 4".</div>
         </div>
       </div>
@@ -171,7 +177,7 @@ Instructions:
     </div>
   </footer>
 
-  <!-- STUDENT LOGIN SCRIPT (NO AI LOGIC) -->
+  <!-- STUDENT LOGIN SCRIPT -->
   <script>
     const BETA_PASS = 'apollo-beta-2025';
     const ENROLL_FORM = 'ENROLL_FORM_URL';
