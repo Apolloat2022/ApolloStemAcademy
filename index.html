@@ -106,42 +106,50 @@
       animation: gradientShift 3s ease infinite;
     }
 
-    /* === MOBILE ENHANCEMENTS === */
+        /* === MOBILE ENHANCEMENTS === */
     @media (max-width: 768px) {
+        /* Better touch targets for mobile */
         .mobile-touch {
             min-height: 44px;
             padding: 12px 16px;
         }
         
+        /* Improved mobile text readability */
         .mobile-text {
             font-size: 16px;
             line-height: 1.5;
         }
         
+        /* Better mobile spacing */
         .mobile-spacing {
             padding: 1rem;
             margin-bottom: 1.5rem;
         }
         
+        /* Optimize AI tool cards for mobile */
         .tool-card {
             margin-bottom: 1.5rem;
             padding: 1.5rem;
         }
         
+        /* Improve mobile button sizes */
         button, .btn-glow {
             min-height: 44px;
             font-size: 16px;
         }
         
+        /* Better textarea handling */
         textarea {
             font-size: 16px;
             min-height: 120px;
         }
         
+        /* Optimize hero section for mobile */
         .hero-bg {
             padding: 3rem 1rem;
         }
         
+        /* Improve mobile navigation */
         #mobileNav {
             padding: 1rem;
         }
@@ -151,6 +159,7 @@
             font-size: 18px;
         }
 
+        /* Mobile specific text sizes */
         .mobile-hero-text {
             font-size: 2.5rem;
         }
@@ -158,8 +167,22 @@
         .mobile-section-text {
             font-size: 2rem;
         }
+
+        /* === MOBILE-ONLY HERO TEXT FIX === */
+        /* Fix hero heading for mobile */
+        .mobile-hero-text {
+            font-size: 2.1rem !important;
+            line-height: 1.1 !important;
+        }
+        
+        /* Fix hero paragraph for mobile */
+        .hero-bg .text-xl {
+            font-size: 1rem !important;
+            line-height: 1.4 !important;
+        }
     }
 
+    /* Extra small mobile devices */
     @media (max-width: 480px) {
         .hero-bg {
             padding: 2rem 1rem;
@@ -170,12 +193,25 @@
             margin: 0.5rem 0;
         }
         
+        /* === EXTRA SMALL MOBILE HERO FIX === */
         .mobile-hero-text {
-            font-size: 2rem;
+            font-size: 1.8rem !important;
+            line-height: 1.1 !important;
         }
         
-        .mobile-section-text {
-            font-size: 1.75rem;
+        .hero-bg .text-xl {
+            font-size: 0.95rem !important;
+        }
+    }
+
+    /* Very small phones */
+    @media (max-width: 380px) {
+        .mobile-hero-text {
+            font-size: 1.6rem !important;
+        }
+        
+        .hero-bg .text-xl {
+            font-size: 0.9rem !important;
         }
     }
   </style>
