@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Heart, BookOpen, Microscope, Code, Calculator, Atom, Zap, FileText } from 'lucide-react';
+import { Award, Star, Globe, Heart, BookOpen, Microscope, Code, Calculator, Atom, Zap, FileText, UserPlus } from 'lucide-react';
 
 const CLOUDFLARE_WORKER_URL = 'https://apolloacademyaiteacher.revanaglobal.workers.dev/';
 
@@ -85,10 +85,7 @@ const LandingPage: React.FC = () => {
             <header className="max-w-6xl mx-auto p-4 md:p-6 fade-in sticky top-0 z-50 bg-gray-900/90 backdrop-blur-md border-b border-gray-800">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 md:gap-4">
-                        <img src="/logo.png" alt="Apollo Logo" className="w-10 h-10 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
-                        <div className={`w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center ${document.querySelector('img[src="/logo.png"]')?.clientHeight ? 'hidden' : ''}`}>
-                            <span className="text-xl font-bold">A</span>
-                        </div>
+                        <img src="/logo.png" alt="Apollo Logo" className="w-[500px] h-auto object-contain" />
                         <div>
                             <h1 className="text-lg md:text-xl font-semibold tracking-tight">Apollo STEM Academy</h1>
                             <p className="text-xs text-gray-400 hidden md:block">AI-Powered Learning Tools</p>
@@ -310,14 +307,22 @@ const LandingPage: React.FC = () => {
             {/* ENROLLMENT & VOLUNTEER */}
             <section id="enroll" className="py-20 bg-indigo-900/10 border-t border-gray-800">
                 <div className="max-w-4xl mx-auto px-6 text-center">
-                    <h2 className="text-3xl font-bold mb-6 text-white">Join Our Mission</h2>
-                    <div id="volunteer" className="grid md:grid-cols-2 gap-8 mt-10">
-                        <div className="p-8 bg-gray-800 rounded-2xl border border-gray-700 text-left">
+                    <h2 className="text-3xl font-bold mb-4 text-white">Join Our Mission</h2>
+                    <div className="mb-10 p-6 bg-yellow-400/10 border border-yellow-400/20 rounded-2xl max-w-2xl mx-auto">
+                        <p className="text-2xl font-black text-white mb-2">$15 Enrollment Fee</p>
+                        <p className="text-yellow-400 font-bold uppercase tracking-widest text-sm">Limited Time Offer</p>
+                        <p className="text-gray-300 mt-4">The first <span className="text-white font-bold text-lg">50 students</span> receive <span className="text-green-400 font-bold text-lg underline">FREE</span> enrollment!</p>
+                    </div>
+
+                    <div id="volunteer" className="grid md:grid-cols-2 gap-8">
+                        <div className="p-8 bg-gray-800 rounded-2xl border border-gray-700 text-left relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition"><UserPlus size={40} /></div>
                             <h4 className="text-xl font-bold mb-2">Student Enrollment</h4>
                             <p className="text-gray-400 text-sm mb-6">Apply for our limited founding cohort. Open to grades 1-12.</p>
                             <a href="https://docs.google.com/forms/d/e/1FAIpQLSchUXzauH_d0SQaKhAhS7To2Op07CUkGcsLrxaNqpXLzvx2jQ/viewform" target="_blank" className="block w-full py-3 bg-yellow-400 text-black text-center font-bold rounded hover:bg-yellow-300 transition">Student Application</a>
                         </div>
-                        <div className="p-8 bg-gray-800 rounded-2xl border border-gray-700 text-left">
+                        <div className="p-8 bg-gray-800 rounded-2xl border border-gray-700 text-left relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition"><Heart size={40} /></div>
                             <h4 className="text-xl font-bold mb-2">Volunteer Faculty</h4>
                             <p className="text-gray-400 text-sm mb-6">Join us as a teacher, mentor, or curriculum developer.</p>
                             <a href="https://docs.google.com/forms/d/e/1FAIpQLSeXDLtEx-oIcMUORk8vyQkQD-sKMwpfR5a5YPEFKMahhAT8nQ/viewform" target="_blank" className="block w-full py-3 bg-indigo-600 text-white text-center font-bold rounded hover:bg-indigo-500 transition">Volunteer Application</a>
@@ -327,21 +332,45 @@ const LandingPage: React.FC = () => {
             </section>
 
             {/* SPONSORS */}
-            <section id="sponsors" className="py-20 border-t border-gray-800">
+            <section id="sponsors" className="py-20 border-t border-gray-800 bg-black/20">
                 <div className="max-w-6xl mx-auto px-6">
-                    <div className="text-center mb-12">
-                        <h3 className="text-2xl font-bold text-gray-300">Supported By</h3>
+                    <div className="text-center mb-16">
+                        <h3 className="text-3xl font-bold text-white mb-2">Our Sponsors</h3>
+                        <p className="text-gray-500">Powering the future of STEM education</p>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center opacity-60">
-                        {/* Placeholder for Sponsor Cards - Using simple text for now to match backup style */}
-                        <div className="p-6 bg-gray-800 rounded-xl text-center font-bold text-gray-500">Platinum Sponsor</div>
-                        <div className="p-6 bg-gray-800 rounded-xl text-center font-bold text-gray-500">Gold Sponsor</div>
-                        <div className="p-6 bg-gray-800 rounded-xl text-center font-bold text-gray-500">Visionary Sponsor</div>
-                        <div className="p-6 bg-gray-800 rounded-xl text-center font-bold text-gray-500">Community Partner</div>
+                    <div className="grid md:grid-cols-4 gap-6">
+                        {/* Platinum */}
+                        <div className="p-8 bg-gray-800/50 rounded-2xl border border-gray-700 hover:border-yellow-400/50 transition text-center group">
+                            <div className="mb-4 text-yellow-400 mx-auto w-fit p-3 bg-yellow-400/10 rounded-full group-hover:scale-110 transition"><Award size={32} /></div>
+                            <h4 className="text-lg font-bold text-white mb-2">Platinum</h4>
+                            <p className="text-2xl font-bold text-yellow-400 my-2">$10k</p>
+                            <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Sponsor</p>
+                        </div>
+                        {/* Gold */}
+                        <div className="p-8 bg-gray-800/50 rounded-2xl border border-gray-700 hover:border-yellow-600/50 transition text-center group">
+                            <div className="mb-4 text-yellow-600 mx-auto w-fit p-3 bg-yellow-600/10 rounded-full group-hover:scale-110 transition"><Star size={32} /></div>
+                            <h4 className="text-lg font-bold text-white mb-2">Gold</h4>
+                            <p className="text-2xl font-bold text-yellow-600 my-2">$5k</p>
+                            <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Sponsor</p>
+                        </div>
+                        {/* Visionary */}
+                        <div className="p-8 bg-gray-800/50 rounded-2xl border border-gray-700 hover:border-purple-400/50 transition text-center group">
+                            <div className="mb-4 text-purple-400 mx-auto w-fit p-3 bg-purple-400/10 rounded-full group-hover:scale-110 transition"><Zap size={32} /></div>
+                            <h4 className="text-lg font-bold text-white mb-2">Visionary</h4>
+                            <p className="text-2xl font-bold text-purple-400 my-2">$1k</p>
+                            <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Sponsor</p>
+                        </div>
+                        {/* Community */}
+                        <div className="p-8 bg-gray-800/50 rounded-2xl border border-gray-700 hover:border-green-400/50 transition text-center group">
+                            <div className="mb-4 text-green-400 mx-auto w-fit p-3 bg-green-400/10 rounded-full group-hover:scale-110 transition"><Heart size={32} /></div>
+                            <h4 className="text-lg font-bold text-white mb-2">Community</h4>
+                            <p className="text-2xl font-bold text-green-400 my-2">$50</p>
+                            <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">Partner</p>
+                        </div>
                     </div>
                     <div className="text-center mt-12">
-                        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfOTUSXYJbQM9S9k5sTrr6TNTWnAGGwc4G3wjNuSMTdJdmaUQ/viewform?usp=publish-editor" target="_blank" className="inline-block px-6 py-3 border border-gray-600 text-gray-300 rounded hover:text-white hover:border-gray-400 transition">
-                            Become a Sponsor
+                        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfOTUSXYJbQM9S9k5sTrr6TNTWnAGGwc4G3wjNuSMTdJdmaUQ/viewform?usp=publish-editor" target="_blank" className="inline-flex items-center gap-2 px-8 py-3 bg-gray-800 hover:bg-gray-700 border border-gray-600 rounded-lg text-white font-semibold transition">
+                            <Globe size={16} /> Become a Sponsor
                         </a>
                     </div>
                 </div>
