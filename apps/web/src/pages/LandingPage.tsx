@@ -52,8 +52,13 @@ const LandingPage: React.FC = () => {
             <nav className="fixed top-0 w-full z-50 glass border-b border-white/5 px-6 py-4">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <img src="/logo.png" alt="Apollo Logo" className="w-10 h-10 rounded-full" />
-                        <span className="text-xl font-bold tracking-tight">Apollo STEM Academy</span>
+                        <img
+                            src="/logo.png"
+                            alt="Apollo Logo"
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-full ring-2 ring-apollo-indigo/20 object-contain"
+                            style={{ width: '40px', height: '40px' }}
+                        />
+                        <span className="text-xl font-black tracking-tight gradient-shift">Apollo STEM Academy</span>
                     </div>
 
                     <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
@@ -137,7 +142,7 @@ const LandingPage: React.FC = () => {
                         <div className="glass rounded-[40px] p-8 md:p-12 border-white/5 relative z-10 animate-float shadow-2xl">
                             <div className="flex items-center gap-4 mb-8">
                                 <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20">
-                                    <Calculator className="text-blue-400" />
+                                    <Calculator className="text-blue-400" style={{ width: '24px', height: '24px' }} />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-lg">AI Math Solver</h3>
@@ -240,7 +245,12 @@ const LandingPage: React.FC = () => {
             <footer className="py-20 px-6 border-t border-white/5 glass bg-black/50">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
                     <div className="flex items-center gap-4">
-                        <img src="/logo.png" alt="Logo" className="w-12 h-12 rounded-full" />
+                        <img
+                            src="/logo.png"
+                            alt="Logo"
+                            className="w-12 h-12 rounded-full ring-1 ring-white/10"
+                            style={{ width: '48px', height: '48px' }}
+                        />
                         <div>
                             <div className="font-black text-xl tracking-tighter">Apollo STEM Academy</div>
                             <div className="text-xs text-gray-500 italic">Establishing the future of private education.</div>

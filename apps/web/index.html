@@ -1,14 +1,38 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/logo.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Apollo STEM Academy — Private AI-Powered Learning</title>
-    <meta name="description" content="Personalized STEM tutoring with AI intelligence and human teacher guidance." />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apollo STEM Academy — Private AI-Powered Learning</title>
+  <meta name="description" content="Personalized STEM tutoring with AI intelligence and human teacher guidance." />
+  <style>
+    #root {
+      min-height: 100vh;
+      background-color: #0b1220;
+      color: white;
+    }
+
+    img[alt="Apollo Logo"],
+    img[alt="Logo"] {
+      max-width: 48px !important;
+      height: auto !important;
+      border-radius: 9999px;
+    }
+
+    .gradient-shift {
+      background: linear-gradient(90deg, #fde047, #f59e0b, #ec4899, #fde047);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-size: 200% auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
