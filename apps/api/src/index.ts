@@ -257,20 +257,27 @@ app.post('/api/ai/generate', async (c) => {
       }
     }
 
-    // Log the activity
-    await c.env.DB.prepare(
-      'INSERT INTO progress_logs (id, student_id, tool_id, activity_type, performance_score, metadata) VALUES (?, ?, ?, ?, ?, ?)'
-    ).bind(
-      crypto.randomUUID(),
-      payload.id,
-      toolKey,
-      `AI_TOOL_${toolKey.toUpperCase()}`,
-      85, // Mock score for analysis
-      JSON.stringify({ prompt, answer })
-    ).run();
+    // Log the activity only if user is authenticated
+    if (payload && payload.id) {
+      try {
+        await c.env.DB.prepare(
+          'INSERT INTO progress_logs (id, student_id, tool_id, activity_type, performance_score, metadata) VALUES (?, ?, ?, ?, ?, ?)'
+        ).bind(
+          crypto.randomUUID(),
+          payload.id,
+          toolKey,
+          `AI_TOOL_${toolKey.toUpperCase()}`,
+          85, // Mock score for analysis
+          JSON.stringify({ prompt, answer })
+        ).run();
 
-    // Trigger achievement check
-    await checkAchievements(c.env.DB, payload.id);
+        // Trigger achievement check
+        await checkAchievements(c.env.DB, payload.id);
+      } catch (dbError) {
+        console.error("Database logging failed", dbError);
+        // Don't fail the request if logging fails
+      }
+    }
 
     return c.json({ success: true, answer });
   } catch (err: any) {
