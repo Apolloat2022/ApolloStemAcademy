@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, Users, ShieldCheck, ArrowLeft, Sparkles, Heart } from 'lucide-react';
+import { GraduationCap, Users, ShieldCheck, ArrowLeft, Sparkles, Heart, Home } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { authService } from '../services/authService';
 import { api } from '../services/api';
@@ -48,6 +48,14 @@ const Login: React.FC = () => {
                 <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-apollo-indigo rounded-full blur-[120px]" />
                 <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-apollo-yellow rounded-full blur-[120px]" />
             </div>
+
+            <button
+                onClick={() => navigate('/')}
+                className="absolute top-8 left-8 flex items-center gap-2 text-gray-500 hover:text-white font-bold transition-colors z-20"
+            >
+                <Home size={20} />
+                <span>Back to Home</span>
+            </button>
 
             <div className="w-full max-w-xl z-10 fade-in">
                 <div className="text-center mb-12">
