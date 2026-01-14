@@ -104,39 +104,17 @@ const LandingPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Interactive Hero Tool (Math) */}
-                    <div className="relative fade-in-delay">
-                        <div className="glass rounded-[40px] p-8 md:p-12 border-white/5 relative z-10 animate-float shadow-2xl">
-                            <div className="flex items-center gap-4 mb-8">
-                                <div className="p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 text-blue-400">
-                                    <Calculator size={24} />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-lg">AI Math Solver</h3>
-                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Live Demo • High Accuracy</p>
-                                </div>
-                            </div>
-                            <div className="space-y-4">
-                                <input
-                                    type="text"
-                                    value={mathProblem}
-                                    onChange={(e) => setMathProblem(e.target.value)}
-                                    placeholder="Enter a math problem (e.g. 2x + 5 = 15)"
-                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 outline-none focus:ring-2 focus:ring-blue-400 transition-all text-white placeholder:text-gray-600 font-medium"
-                                />
-                                <button
-                                    onClick={() => callAI(`Solve this math problem step by step: ${mathProblem}`, 'math', setMathSolution)}
-                                    disabled={loadingTool === 'math'}
-                                    className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm transition-all ${loadingTool === 'math' ? 'bg-white/5 text-gray-500' : 'bg-blue-600 text-white hover:scale-[1.02]'}`}
-                                >
-                                    {loadingTool === 'math' ? 'Calculating...' : 'Solve with AI'}
-                                </button>
-                            </div>
-                            {mathSolution && (
-                                <div className="mt-8 p-6 bg-white/5 rounded-3xl border border-white/5 animate-in zoom-in duration-300">
-                                    <p className="text-sm text-gray-300 whitespace-pre-line leading-relaxed italic">{mathSolution}</p>
-                                </div>
-                            )}
+                    {/* Call to Action - Try AI Tools */}
+                    <div className="relative fade-in-delay mt-8">
+                        <div className="glass rounded-[40px] p-8 md:p-12 border-white/5 relative z-10 shadow-2xl text-center">
+                            <h3 className="font-bold text-2xl mb-4">Ready to Try Our AI Tools?</h3>
+                            <p className="text-gray-400 mb-6">Experience AI-powered learning with our Math Solver, Worksheet Generator, Science Lab, and Study Guide tools.</p>
+                            <a
+                                href="#tools"
+                                className="inline-block px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm hover:scale-105 transition-all"
+                            >
+                                Try Free AI Tools
+                            </a>
                         </div>
                     </div>
                 </div>
