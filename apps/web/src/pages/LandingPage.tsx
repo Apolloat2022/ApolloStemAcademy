@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Heart, BookOpen, Microscope, Code, Calculator, Atom, Zap, FileText } from 'lucide-react';
 
 const CLOUDFLARE_WORKER_URL = 'https://apolloacademyaiteacher.revanaglobal.workers.dev/';
 
@@ -81,137 +82,224 @@ const LandingPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-gray-800 text-white antialiased font-sans">
             {/* NAV */}
-            <header className="max-w-6xl mx-auto p-4 md:p-6 fade-in">
+            <header className="max-w-6xl mx-auto p-4 md:p-6 fade-in sticky top-0 z-50 bg-gray-900/90 backdrop-blur-md border-b border-gray-800">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3 md:gap-4">
-                        <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center">
+                        <img src="/logo.png" alt="Apollo Logo" className="w-10 h-10 object-contain" onError={(e) => e.currentTarget.style.display = 'none'} />
+                        <div className={`w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center ${document.querySelector('img[src="/logo.png"]')?.clientHeight ? 'hidden' : ''}`}>
                             <span className="text-xl font-bold">A</span>
                         </div>
                         <div>
-                            <h1 className="text-lg md:text-xl font-semibold">Apollo STEM Academy</h1>
+                            <h1 className="text-lg md:text-xl font-semibold tracking-tight">Apollo STEM Academy</h1>
                             <p className="text-xs text-gray-400 hidden md:block">AI-Powered Learning Tools</p>
                         </div>
                     </div>
-                    <nav className="hidden md:flex items-center space-x-4">
-                        <a href="#tools" className="text-gray-300 hover:text-white">AI Tools</a>
-                        <a href="#enroll" className="text-gray-300 hover:text-white">Enroll</a>
-                        <button onClick={() => navigate('/login')} className="ml-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded whitespace-nowrap">Student Login</button>
+                    <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
+                        <a href="#about" className="text-gray-300 hover:text-white transition">About</a>
+                        <a href="#subjects" className="text-gray-300 hover:text-white transition">Subjects</a>
+                        <a href="#tools" className="text-gray-300 hover:text-white transition">AI Tools</a>
+                        <a href="#volunteer" className="text-gray-300 hover:text-white transition">Volunteer</a>
+                        <a href="#sponsors" className="text-gray-300 hover:text-white transition">Sponsors</a>
+                        <button onClick={() => navigate('/login')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-white transition">Student Login</button>
                     </nav>
                     <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden text-white focus:outline-none">
                         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                     </button>
                 </div>
                 {mobileMenuOpen && (
-                    <nav className="mt-4 pb-4 md:hidden flex flex-col space-y-3">
+                    <nav className="mt-4 pb-4 md:hidden flex flex-col space-y-3 border-t border-gray-800 pt-4">
+                        <a href="#about" className="text-gray-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>About</a>
+                        <a href="#subjects" className="text-gray-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Subjects</a>
                         <a href="#tools" className="text-gray-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>AI Tools</a>
-                        <a href="#enroll" className="text-gray-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Enroll</a>
+                        <a href="#volunteer" className="text-gray-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Volunteer</a>
+                        <a href="#sponsors" className="text-gray-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Sponsors</a>
                         <button onClick={() => navigate('/login')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded w-fit">Student Login</button>
                     </nav>
                 )}
             </header>
 
             {/* HERO */}
-            <main className="py-16 md:py-20">
-                <section className="max-w-6xl mx-auto px-4 md:px-6">
-                    <div className="text-center fade-in">
-                        <h2 className="text-4xl md:text-5xl font-extrabold leading-tight gradient-shift">AI-Powered Learning Tools</h2>
-                        <p className="mt-4 md:mt-6 text-gray-300 max-w-xl mx-auto">Instant AI helpers for students - no login required. Get step-by-step solutions and personalized learning support.</p>
+            <main className="py-20 md:py-28 relative overflow-hidden">
+                <section className="max-w-6xl mx-auto px-4 md:px-6 relative z-10">
+                    <div className="text-center fade-in max-w-3xl mx-auto">
+                        <div className="inline-block px-4 py-1 mb-6 rounded-full bg-indigo-900/30 border border-indigo-500/30 text-indigo-300 text-xs font-bold uppercase tracking-widest">
+                            The Future of Education
+                        </div>
+                        <h2 className="text-5xl md:text-7xl font-extrabold leading-tight gradient-shift mb-6">
+                            Master STEM with AI
+                        </h2>
+                        <p className="text-lg md:text-xl text-gray-300 leading-relaxed mb-10">
+                            Personalized learning powered by advanced AI and guided by expert mentors. <br className="hidden md:block" /> Join the next generation of innovators.
+                        </p>
+                        <div className="flex flex-col sm:flex-row justify-center gap-4">
+                            <a href="#enroll" className="px-8 py-4 bg-yellow-400 text-black font-bold rounded-lg hover:scale-105 transition shadow-lg shadow-yellow-400/20">
+                                Apply for Fall 2026
+                            </a>
+                            <a href="#tools" className="px-8 py-4 bg-gray-800 border border-gray-700 text-white font-bold rounded-lg hover:bg-gray-700 transition">
+                                Try AI Tools Free
+                            </a>
+                        </div>
                     </div>
                 </section>
             </main>
 
+            {/* ABOUT SECTION */}
+            <section id="about" className="py-20 bg-gray-900 border-y border-gray-800">
+                <div className="max-w-6xl mx-auto px-4 md:px-6">
+                    <div className="text-center mb-16">
+                        <h3 className="text-3xl font-bold mb-4 text-white">Why Apollo STEM Academy?</h3>
+                        <p className="text-gray-400 max-w-2xl mx-auto">We bridge the gap between traditional education and future technology with a unique hybrid model.</p>
+                    </div>
+                    <div className="grid md:grid-cols-3 gap-8">
+                        <div className="p-8 bg-gray-800 rounded-2xl border border-gray-700">
+                            <div className="w-12 h-12 bg-indigo-900/50 rounded-lg flex items-center justify-center text-indigo-400 mb-6"><Atom /></div>
+                            <h4 className="text-xl font-bold mb-3">AI-Native Curriculum</h4>
+                            <p className="text-gray-400">Our courses adapt in real-time to your learning pace, offering personalized challenges and support.</p>
+                        </div>
+                        <div className="p-8 bg-gray-800 rounded-2xl border border-gray-700">
+                            <div className="w-12 h-12 bg-purple-900/50 rounded-lg flex items-center justify-center text-purple-400 mb-6"><Heart /></div>
+                            <h4 className="text-xl font-bold mb-3">Human Mentorship</h4>
+                            <p className="text-gray-400">Expert teachers review your work, providing the empathy and creative guidance AI cannot match.</p>
+                        </div>
+                        <div className="p-8 bg-gray-800 rounded-2xl border border-gray-700">
+                            <div className="w-12 h-12 bg-green-900/50 rounded-lg flex items-center justify-center text-green-400 mb-6"><Zap /></div>
+                            <h4 className="text-xl font-bold mb-3">Future-Ready Skills</h4>
+                            <p className="text-gray-400">Focus on problem-solving, coding, and critical thinking skills needed for the 21st century workforce.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* SUBJECTS SECTION */}
+            <section id="subjects" className="py-20">
+                <div className="max-w-6xl mx-auto px-4 md:px-6">
+                    <div className="text-center mb-16">
+                        <h3 className="text-3xl font-bold mb-4 text-white">Core Subjects</h3>
+                        <div className="h-1 w-20 bg-indigo-600 mx-auto rounded"></div>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                        {[
+                            { name: 'Mathematics', icon: Calculator, color: 'text-blue-400' },
+                            { name: 'Science', icon: Microscope, color: 'text-green-400' },
+                            { name: 'Computer Science', icon: Code, color: 'text-purple-400' },
+                            { name: 'Language Arts', icon: BookOpen, color: 'text-yellow-400' },
+                        ].map((sub, i) => (
+                            <div key={i} className="p-6 bg-gray-800/50 rounded-xl border border-gray-700 text-center hover:bg-gray-800 transition cursor-default">
+                                <div className={`mb-4 inline-block p-3 rounded-full bg-gray-900 ${sub.color}`}>
+                                    <sub.icon size={28} />
+                                </div>
+                                <h4 className="font-semibold">{sub.name}</h4>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
             {/* AI TOOLS */}
-            <section id="tools" className="max-w-6xl mx-auto px-4 md:px-6 py-10 md:py-12 fade-in">
-                <h3 className="text-2xl font-bold text-center mb-8">Free AI Learning Tools</h3>
+            <section id="tools" className="max-w-6xl mx-auto px-4 md:px-6 py-20 border-t border-gray-800">
+                <div className="text-center mb-12">
+                    <span className="text-indigo-400 font-bold tracking-widest uppercase text-xs">Interactive Demo</span>
+                    <h3 className="text-3xl font-bold mt-2">Free AI Learning Tools</h3>
+                </div>
 
                 <div className="grid md:grid-cols-2 gap-8">
                     {/* Math Solver */}
-                    <div className="glass rounded-2xl border border-gray-700 p-6">
-                        <h4 className="text-xl font-semibold mb-4">Math Problem Solver</h4>
+                    <div className="glass rounded-2xl border border-gray-700 p-6 hover:border-gray-600 transition">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-yellow-400/10 rounded text-yellow-400"><Calculator size={20} /></div>
+                            <h4 className="text-xl font-semibold">Math Problem Solver</h4>
+                        </div>
                         <textarea
                             value={mathProblem}
                             onChange={(e) => setMathProblem(e.target.value)}
                             rows={3}
-                            placeholder={`Enter any math problem...\nExample: Solve 2x + 5 = 15\nExample: Find derivative of x² + 3x\nExample: Calculate area of a circle with radius 5`}
-                            className="w-full px-4 py-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 mb-4 text-white"
+                            placeholder={`Enter any math problem...\nExample: Solve 2x + 5 = 15`}
+                            className="w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700 focus:outline-none focus:border-yellow-400 mb-4 text-white placeholder-gray-500"
                         />
-                        <button onClick={handleMath} className="w-full px-4 py-3 bg-yellow-400 text-black rounded font-semibold hover:scale-105 transition">Get Step-by-Step Solution</button>
+                        <button onClick={handleMath} className="w-full px-4 py-3 bg-yellow-400 text-black rounded-lg font-bold hover:bg-yellow-300 transition">Get Step-by-Step Solution</button>
                         {mathOutput && (
-                            <div className={`mt-4 p-4 rounded bg-gray-900 border border-gray-700 text-sm whitespace-pre-wrap ${mathOutput.color}`}>
+                            <div className={`mt-4 p-4 rounded bg-black/40 border border-gray-700 text-sm whitespace-pre-wrap ${mathOutput.color}`}>
                                 {mathOutput.text}
                             </div>
                         )}
                     </div>
 
                     {/* Worksheet Generator */}
-                    <div className="glass rounded-2xl border border-gray-700 p-6">
-                        <h4 className="text-xl font-semibold mb-4">Worksheet Generator</h4>
+                    <div className="glass rounded-2xl border border-gray-700 p-6 hover:border-gray-600 transition">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-blue-400/10 rounded text-blue-400"><FileText size={20} /></div>
+                            <h4 className="text-xl font-semibold">Worksheet Generator</h4>
+                        </div>
                         <input
                             type="text"
                             value={worksheetTopic}
                             onChange={(e) => setWorksheetTopic(e.target.value)}
-                            placeholder="Topic (e.g., Fractions, Algebra, Geometry)"
-                            className="w-full px-4 py-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 mb-4 text-white"
+                            placeholder="Topic (e.g., Fractions)"
+                            className="w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700 focus:outline-none focus:border-blue-400 mb-4 text-white"
                         />
                         <select
                             value={worksheetGrade}
                             onChange={(e) => setWorksheetGrade(e.target.value)}
-                            className="w-full px-4 py-3 rounded bg-gray-800 border border-gray-700 mb-4 text-white"
+                            className="w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700 mb-4 text-gray-300"
                         >
                             {['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12'].map(g => (
                                 <option key={g} value={g}>{g}</option>
                             ))}
                         </select>
-                        <button onClick={handleWorksheet} className="w-full px-4 py-3 bg-indigo-600 text-white rounded font-semibold hover:scale-105 transition">Generate Practice Worksheet</button>
+                        <button onClick={handleWorksheet} className="w-full px-4 py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-500 transition">Generate Worksheet</button>
                         {worksheetOutput && (
-                            <div className={`mt-4 p-4 rounded bg-gray-900 border border-gray-700 text-sm whitespace-pre-wrap ${worksheetOutput.color}`}>
+                            <div className={`mt-4 p-4 rounded bg-black/40 border border-gray-700 text-sm whitespace-pre-wrap ${worksheetOutput.color}`}>
                                 {worksheetOutput.text}
                             </div>
                         )}
                     </div>
-                </div>
 
-                <div className="grid md:grid-cols-2 gap-8 mt-8">
                     {/* Science Lab Assistant */}
-                    <div className="glass rounded-2xl border border-gray-700 p-6">
-                        <h4 className="text-xl font-semibold mb-4">Science Lab Assistant</h4>
+                    <div className="glass rounded-2xl border border-gray-700 p-6 hover:border-gray-600 transition">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-green-400/10 rounded text-green-400"><Microscope size={20} /></div>
+                            <h4 className="text-xl font-semibold">Science Lab Assistant</h4>
+                        </div>
                         <textarea
                             value={scienceTopic}
                             onChange={(e) => setScienceTopic(e.target.value)}
                             rows={3}
-                            placeholder={`Describe an experiment or ask about a science concept...\nExamples:\n- Photosynthesis process\n- Chemical reactions\n- Newton's laws of motion`}
-                            className="w-full px-4 py-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 mb-4 text-white"
+                            placeholder={`Describe an experiment...\nExample: Photosynthesis process`}
+                            className="w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700 focus:outline-none focus:border-green-400 mb-4 text-white placeholder-gray-500"
                         />
-                        <button onClick={handleScience} className="w-full px-4 py-3 bg-green-600 text-white rounded font-semibold hover:scale-105 transition">Explain Science Concept</button>
+                        <button onClick={handleScience} className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-500 transition">Explain Science Concept</button>
                         {scienceOutput && (
-                            <div className={`mt-4 p-4 rounded bg-gray-900 border border-gray-700 text-sm whitespace-pre-wrap ${scienceOutput.color}`}>
+                            <div className={`mt-4 p-4 rounded bg-black/40 border border-gray-700 text-sm whitespace-pre-wrap ${scienceOutput.color}`}>
                                 {scienceOutput.text}
                             </div>
                         )}
                     </div>
 
                     {/* Study Guide Generator */}
-                    <div className="glass rounded-2xl border border-gray-700 p-6">
-                        <h4 className="text-xl font-semibold mb-4">Study Guide Generator</h4>
+                    <div className="glass rounded-2xl border border-gray-700 p-6 hover:border-gray-600 transition">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-amber-400/10 rounded text-amber-400"><BookOpen size={20} /></div>
+                            <h4 className="text-xl font-semibold">Study Guide Generator</h4>
+                        </div>
                         <input
                             type="text"
                             value={studyTopic}
                             onChange={(e) => setStudyTopic(e.target.value)}
-                            placeholder="Topic (e.g., World War II, Algebra, Cell Biology)"
-                            className="w-full px-4 py-3 rounded bg-gray-800 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-300 mb-4 text-white"
+                            placeholder="Topic (e.g., World War II)"
+                            className="w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700 focus:outline-none focus:border-amber-400 mb-4 text-white"
                         />
                         <select
                             value={studyLevel}
                             onChange={(e) => setStudyLevel(e.target.value)}
-                            className="w-full px-4 py-3 rounded bg-gray-800 border border-gray-700 mb-4 text-white"
+                            className="w-full px-4 py-3 rounded-lg bg-gray-900 border border-gray-700 mb-4 text-gray-300"
                         >
                             {['Elementary School', 'Middle School', 'High School', 'College'].map(l => (
                                 <option key={l} value={l}>{l}</option>
                             ))}
                         </select>
-                        <button onClick={handleStudyGuide} className="w-full px-4 py-3 bg-amber-600 text-white rounded font-semibold hover:scale-105 transition">Generate Study Guide</button>
+                        <button onClick={handleStudyGuide} className="w-full px-4 py-3 bg-amber-600 text-white rounded-lg font-bold hover:bg-amber-500 transition">Generate Study Guide</button>
                         {studyOutput && (
-                            <div className={`mt-4 p-4 rounded bg-gray-900 border border-gray-700 text-sm whitespace-pre-wrap ${studyOutput.color}`}>
+                            <div className={`mt-4 p-4 rounded bg-black/40 border border-gray-700 text-sm whitespace-pre-wrap ${studyOutput.color}`}>
                                 {studyOutput.text}
                             </div>
                         )}
@@ -219,19 +307,50 @@ const LandingPage: React.FC = () => {
                 </div>
             </section>
 
-            {/* ENROLLMENT */}
-            <section id="enroll" className="max-w-4xl mx-auto p-6 md:p-8 mt-12 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl border border-gray-700 fade-in">
-                <h3 className="text-2xl font-bold text-center">Limited Founding Enrollment</h3>
-                <p className="mt-3 text-gray-300 text-center">We are offering free access to the first 50 students for a limited time.</p>
-                <div className="mt-6 text-center">
-                    <a href="https://docs.google.com/forms/d/e/1FAIpQLSchUXzauH_d0SQaKhAhS7To2Op07CUkGcsLrxaNqpXLzvx2jQ/viewform" target="_blank" className="inline-block px-6 py-3 bg-yellow-400 text-black rounded font-semibold hover:scale-105 transition">Apply for Free Access</a>
+            {/* ENROLLMENT & VOLUNTEER */}
+            <section id="enroll" className="py-20 bg-indigo-900/10 border-t border-gray-800">
+                <div className="max-w-4xl mx-auto px-6 text-center">
+                    <h2 className="text-3xl font-bold mb-6 text-white">Join Our Mission</h2>
+                    <div id="volunteer" className="grid md:grid-cols-2 gap-8 mt-10">
+                        <div className="p-8 bg-gray-800 rounded-2xl border border-gray-700 text-left">
+                            <h4 className="text-xl font-bold mb-2">Student Enrollment</h4>
+                            <p className="text-gray-400 text-sm mb-6">Apply for our limited founding cohort. Open to grades 1-12.</p>
+                            <a href="https://docs.google.com/forms/d/e/1FAIpQLSchUXzauH_d0SQaKhAhS7To2Op07CUkGcsLrxaNqpXLzvx2jQ/viewform" target="_blank" className="block w-full py-3 bg-yellow-400 text-black text-center font-bold rounded hover:bg-yellow-300 transition">Student Application</a>
+                        </div>
+                        <div className="p-8 bg-gray-800 rounded-2xl border border-gray-700 text-left">
+                            <h4 className="text-xl font-bold mb-2">Volunteer Faculty</h4>
+                            <p className="text-gray-400 text-sm mb-6">Join us as a teacher, mentor, or curriculum developer.</p>
+                            <a href="https://docs.google.com/forms/d/e/1FAIpQLSeXDLtEx-oIcMUORk8vyQkQD-sKMwpfR5a5YPEFKMahhAT8nQ/viewform" target="_blank" className="block w-full py-3 bg-indigo-600 text-white text-center font-bold rounded hover:bg-indigo-500 transition">Volunteer Application</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* SPONSORS */}
+            <section id="sponsors" className="py-20 border-t border-gray-800">
+                <div className="max-w-6xl mx-auto px-6">
+                    <div className="text-center mb-12">
+                        <h3 className="text-2xl font-bold text-gray-300">Supported By</h3>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-center opacity-60">
+                        {/* Placeholder for Sponsor Cards - Using simple text for now to match backup style */}
+                        <div className="p-6 bg-gray-800 rounded-xl text-center font-bold text-gray-500">Platinum Sponsor</div>
+                        <div className="p-6 bg-gray-800 rounded-xl text-center font-bold text-gray-500">Gold Sponsor</div>
+                        <div className="p-6 bg-gray-800 rounded-xl text-center font-bold text-gray-500">Visionary Sponsor</div>
+                        <div className="p-6 bg-gray-800 rounded-xl text-center font-bold text-gray-500">Community Partner</div>
+                    </div>
+                    <div className="text-center mt-12">
+                        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfOTUSXYJbQM9S9k5sTrr6TNTWnAGGwc4G3wjNuSMTdJdmaUQ/viewform?usp=publish-editor" target="_blank" className="inline-block px-6 py-3 border border-gray-600 text-gray-300 rounded hover:text-white hover:border-gray-400 transition">
+                            Become a Sponsor
+                        </a>
+                    </div>
                 </div>
             </section>
 
             {/* FOOTER */}
-            <footer className="max-w-6xl mx-auto p-6 mt-12 border-t border-gray-800 text-gray-400 text-center">
-                <div>© 2026 Apollo STEM Academy — AI Learning Tools</div>
-                <div className="text-sm mt-2">Contact: <a href="mailto:Robinpandey@apollotunes.com" className="text-yellow-300">Robinpandey@apollotunes.com</a></div>
+            <footer className="max-w-6xl mx-auto p-6 mt-12 border-t border-gray-800 text-gray-500 text-center text-sm">
+                <div className="mb-4">© 2026 Apollo STEM Academy — AI Learning Tools</div>
+                <div>Contact: <a href="mailto:Robinpandey@apollotunes.com" className="text-indigo-400 hover:text-indigo-300">Robinpandey@apollotunes.com</a></div>
             </footer>
         </div>
     );
