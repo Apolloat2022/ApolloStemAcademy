@@ -257,8 +257,8 @@ app.post('/api/ai/generate', async (c) => {
       }
     }
 
-    // Log the activity only if user is authenticated
-    if (payload && payload.id) {
+    // Log the activity only if user is authenticated AND database is available
+    if (payload && payload.id && c.env.DB) {
       try {
         await c.env.DB.prepare(
           'INSERT INTO progress_logs (id, student_id, tool_id, activity_type, performance_score, metadata) VALUES (?, ?, ?, ?, ?, ?)'
