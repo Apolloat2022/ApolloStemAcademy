@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { aiService } from '../services/aiService';
 
 import {
     Sparkles,
-    Calculator,
-    FileText,
-    Beaker,
     Globe,
     ArrowRight,
     Zap,
@@ -14,7 +10,6 @@ import {
     X,
     Heart,
     Star,
-    Award,
     BrainCircuit,
     Layers,
     Coffee
@@ -25,33 +20,6 @@ import {
 const LandingPage: React.FC = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    // Tools State
-    const [mathProblem, setMathProblem] = useState('');
-    const [mathSolution, setMathSolution] = useState<string | null>(null);
-    const [worksheetTopic, setWorksheetTopic] = useState('');
-    const [worksheetGrade, setWorksheetGrade] = useState('Grade 1');
-    const [worksheetOutput, setWorksheetOutput] = useState<string | null>(null);
-    const [scienceTopic, setScienceTopic] = useState('');
-    const [scienceOutput, setScienceOutput] = useState<string | null>(null);
-    const [studyTopic, setStudyTopic] = useState('');
-    const [studyLevel, setStudyLevel] = useState('Elementary School');
-    const [studyOutput, setStudyOutput] = useState<string | null>(null);
-
-    const [loadingTool, setLoadingTool] = useState<string | null>(null);
-
-    const callAI = async (prompt: string, toolKey: string, setter: (val: string) => void) => {
-        setLoadingTool(toolKey);
-        try {
-            const answer = await aiService.generate(prompt);
-            setter(answer);
-        } catch (err: any) {
-            console.error('LandingPage AI Error:', err);
-            setter(`AI unavailable: ${err.message || 'Unknown error'}`);
-        } finally {
-            setLoadingTool(null);
-        }
-    };
 
     return (
         <div className="min-h-screen bg-[#0b1220] text-white font-sans selection:bg-indigo-500/30">
@@ -174,110 +142,24 @@ const LandingPage: React.FC = () => {
                 </div>
             </header >
 
-            {/* Shared AI Tools Suite */}
-            <section id="tools" className="py-32 px-6" >
+            {/* Shared AI Tools Suite - Embedded from Working GitHub Pages */}
+            <section id="tools" className="py-16 px-6">
                 <div className="max-w-7xl mx-auto">
-                    <div className="text-center mb-20">
+                    <div className="text-center mb-12">
                         <h2 className="text-4xl font-black mb-4">Apollo AI Lab</h2>
                         <p className="text-gray-500 uppercase tracking-[4px] text-[10px] font-black italic">Public Access Learning Modules</p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {/* Worksheet Generator */}
-                        <div className="glass p-8 rounded-[40px] border-white/5 flex flex-col items-center text-center">
-                            <div className="w-16 h-16 bg-green-500/10 rounded-3xl flex items-center justify-center mb-8 border border-green-500/20 text-green-400">
-                                <FileText size={32} />
-                            </div>
-                            <h3 className="text-2xl font-black mb-4">Worksheet Engine</h3>
-                            <input
-                                type="text" value={worksheetTopic} onChange={(e) => setWorksheetTopic(e.target.value)}
-                                placeholder="Topic (e.g. Fractions, Algebra)"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 mb-4 text-xs"
-                            />
-                            <select
-                                value={worksheetGrade}
-                                onChange={(e) => setWorksheetGrade(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 mb-4 text-xs text-white"
-                            >
-                                <option value="Kindergarten">Kindergarten</option>
-                                <option value="Grade 1">Grade 1</option>
-                                <option value="Grade 2">Grade 2</option>
-                                <option value="Grade 3">Grade 3</option>
-                                <option value="Grade 4">Grade 4</option>
-                                <option value="Grade 5">Grade 5</option>
-                                <option value="Grade 6">Grade 6</option>
-                                <option value="Grade 7">Grade 7</option>
-                                <option value="Grade 8">Grade 8</option>
-                                <option value="Grade 9">Grade 9</option>
-                                <option value="Grade 10">Grade 10</option>
-                                <option value="Grade 11">Grade 11</option>
-                                <option value="Grade 12">Grade 12</option>
-                            </select>
-                            <button
-                                onClick={() => callAI(`Create a ${worksheetGrade} worksheet for ${worksheetTopic} with 5 problems. Include answers at the end. Make it appropriate for ${worksheetGrade} level.`, 'worksheet', setWorksheetOutput)}
-                                disabled={loadingTool === 'worksheet'}
-                                className="w-full py-3 bg-green-600 rounded-xl font-bold text-xs uppercase hover:scale-105 transition-all"
-                            >
-                                {loadingTool === 'worksheet' ? 'Generating...' : 'Generate PDF Worksheet'}
-                            </button>
-                            {worksheetOutput && <div className="mt-4 p-4 text-[10px] text-gray-400 text-left bg-black/30 rounded-xl max-h-40 overflow-auto">{worksheetOutput}</div>}
-                        </div>
-
-                        {/* Science Lab */}
-                        <div className="glass p-8 rounded-[40px] border-white/5 flex flex-col items-center text-center">
-                            <div className="w-16 h-16 bg-purple-500/10 rounded-3xl flex items-center justify-center mb-8 border border-purple-500/20 text-purple-400">
-                                <Beaker size={32} />
-                            </div>
-                            <h3 className="text-2xl font-black mb-4">Science Lab</h3>
-                            <textarea
-                                value={scienceTopic} onChange={(e) => setScienceTopic(e.target.value)}
-                                placeholder="Describe an experiment or ask about a science concept... (e.g. Photosynthesis, Newton's Laws)"
-                                rows={3}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 mb-4 text-xs resize-none"
-                            />
-                            <button
-                                onClick={() => callAI(`Explain this science experiment/concept for a student: ${scienceTopic}. Provide materials, steps, scientific principles, safety, and real-world applications.`, 'science', setScienceOutput)}
-                                disabled={loadingTool === 'science'}
-                                className="w-full py-3 bg-purple-600 rounded-xl font-bold text-xs uppercase hover:scale-105 transition-all"
-                            >
-                                {loadingTool === 'science' ? 'Analyzing...' : 'Explain Science Concept'}
-                            </button>
-                            {scienceOutput && <div className="mt-4 p-4 text-[10px] text-gray-400 text-left bg-black/30 rounded-xl max-h-40 overflow-auto">{scienceOutput}</div>}
-                        </div>
-
-                        {/* Study Guide */}
-                        <div className="glass p-8 rounded-[40px] border-white/5 flex flex-col items-center text-center">
-                            <div className="w-16 h-16 bg-amber-500/10 rounded-3xl flex items-center justify-center mb-8 border border-amber-500/20 text-amber-400">
-                                <Award size={32} />
-                            </div>
-                            <h3 className="text-2xl font-black mb-4">Study Assistant</h3>
-                            <input
-                                type="text" value={studyTopic} onChange={(e) => setStudyTopic(e.target.value)}
-                                placeholder="Topic (e.g. World War II, Algebra)"
-                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 mb-4 text-xs"
-                            />
-                            <select
-                                value={studyLevel}
-                                onChange={(e) => setStudyLevel(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 mb-4 text-xs text-white"
-                            >
-                                <option value="Elementary School">Elementary School</option>
-                                <option value="Middle School">Middle School</option>
-                                <option value="High School">High School</option>
-                                <option value="College">College</option>
-                            </select>
-                            <button
-                                onClick={() => callAI(`Create a comprehensive study guide about ${studyTopic} for ${studyLevel} level. Include key concepts, definitions, examples, practice questions, and memory tricks.`, 'study', setStudyOutput)}
-                                disabled={loadingTool === 'study'}
-                                className="w-full py-3 bg-amber-600 rounded-xl font-bold text-xs uppercase hover:scale-105 transition-all"
-                            >
-                                {loadingTool === 'study' ? 'Building...' : 'Build Study Guide'}
-                            </button>
-                            {studyOutput && <div className="mt-4 p-4 text-[10px] text-gray-400 text-left bg-black/30 rounded-xl max-h-40 overflow-auto">{studyOutput}</div>}
-                        </div>
+                    <div className="w-full rounded-3xl overflow-hidden border border-white/10" style={{ height: '1200px' }}>
+                        <iframe
+                            src="https://apolloat2022.github.io/ApolloStemAcademyBackup/#tools"
+                            className="w-full h-full border-0"
+                            title="AI Learning Tools"
+                            sandbox="allow-scripts allow-same-origin allow-forms"
+                        />
                     </div>
                 </div>
-            </section >
+            </section>
 
             {/* About Section (Cinematic Description) */}
             <section id="about" className="py-32 px-6 border-t border-white/5 bg-white/[0.01]" >
