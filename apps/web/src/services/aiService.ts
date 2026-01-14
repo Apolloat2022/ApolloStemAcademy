@@ -1,21 +1,20 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787';
-const AI_ENDPOINT = `${API_BASE_URL}/api/ai/generate`;
+// Use deployed Cloudflare Worker (same as working HTML file)
+const CLOUDFLARE_WORKER_URL = 'https://apolloacademyaiteacher.revanaglobal.workers.dev/';
 
 export const aiService = {
     generate: async (prompt: string, context?: string) => {
         const fullPrompt = context ? `${context}\n\n${prompt}` : prompt;
 
-        console.log('[AI Service] Requesting:', { url: AI_ENDPOINT, prompt: fullPrompt });
+        console.log('[AI Service] Requesting:', { url: CLOUDFLARE_WORKER_URL, prompt: fullPrompt });
 
         try {
-            const response = await fetch(AI_ENDPOINT, {
+            const response = await fetch(CLOUDFLARE_WORKER_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    prompt: fullPrompt,
-                    toolKey: 'general'
+                    prompt: fullPrompt
                 })
             });
 
@@ -32,10 +31,13 @@ export const aiService = {
             const data = await response.json();
             console.log('[AI Service] Data:', data);
 
-            if (data.success) {
+            // Handle response from deployed Cloudflare Worker
+            if (data.success && data.answer) {
                 return data.answer;
+            } else if (data.error) {
+                throw new Error(data.error);
             } else {
-                throw new Error(data.error || 'AI service returned an error');
+                throw new Error('AI service returned an unexpected response');
             }
         } catch (error: any) {
             console.error('[AI Service] Exception:', error);
