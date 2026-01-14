@@ -17,7 +17,7 @@ import MessagingCenter from './pages/MessagingCenter';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Placeholder Client ID - User should replace with real one from Google Console
-const GOOGLE_CLIENT_ID = "61703-apollo-dummy-id.apps.googleusercontent.com";
+const GOOGLE_CLIENT_ID = "361795521130-loudg1rmrqkpgqu9dljb7nvej8tqn5hj.apps.googleusercontent.com";
 
 const App: React.FC = () => {
   return (

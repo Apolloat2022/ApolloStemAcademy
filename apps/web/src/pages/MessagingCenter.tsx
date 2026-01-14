@@ -61,13 +61,28 @@ const MessagingCenter: React.FC = () => {
 
     const currentChat = chats.find(c => c.id === selectedChat);
 
-    const generateAIDraft = () => {
+    const generateAIDraft = async () => {
+        if (!currentChat) return;
         setIsDrafting(true);
-        // Simulate Gemini calling /api/ai/generate
-        setTimeout(() => {
-            setAiDraft(`Hey ${currentChat?.name.split(' ')[0]}! You're doing a great job reaching out. Decimals can be tricky, but remember they are just parts of a whole, like slices of a pizza! I've got some great tips for you today. Let's tackle this together! 🚀`);
+        try {
+            const res = await fetch('https://apolloacademyaiteacher.revanaglobal.workers.dev/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt: `You are a helpful teacher at Apollo Academy. Draft a short, supportive, and encouraging message for a student named ${currentChat.name}. The student's last message was: "${currentChat.lastMsg}". keep the tone positive and helpful.`
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setAiDraft(data.answer);
+            } else {
+                setAiDraft("I'm having trouble thinking of a draft right now. You've got this!");
+            }
+        } catch (err) {
+            setAiDraft("AI support is currently offline. Please try again later.");
+        } finally {
             setIsDrafting(false);
-        }, 1500);
+        }
     };
 
     const useDraft = () => {

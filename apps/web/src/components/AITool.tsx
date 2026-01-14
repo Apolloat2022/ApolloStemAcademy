@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles } from 'lucide-react';
-import axios from 'axios';
-import { authService } from '../services/authService';
+
 
 interface AIToolProps {
     title: string;
@@ -12,7 +11,7 @@ interface AIToolProps {
     systemPrompt: string;
 }
 
-const AITool: React.FC<AIToolProps> = ({ title, description, placeholder, toolKey, icon, systemPrompt }) => {
+const AITool: React.FC<AIToolProps> = ({ title, description, placeholder, icon, systemPrompt }) => {
     const [input, setInput] = useState('');
     const [result, setResult] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -24,21 +23,17 @@ const AITool: React.FC<AIToolProps> = ({ title, description, placeholder, toolKe
         setResult('');
 
         try {
-            const token = authService.getToken();
-            const response = await axios.post('/api/ai/generate',
-                {
-                    prompt: `${systemPrompt}\n\nStudent Query: ${input}`,
-                    toolKey: toolKey
-                },
-                {
-                    headers: { Authorization: `Bearer ${token}` }
-                }
-            );
+            const res = await fetch('https://apolloacademyaiteacher.revanaglobal.workers.dev/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: `${systemPrompt}\n\nStudent Query: ${input}` })
+            });
+            const data = await res.json();
 
-            if (response.data.success) {
-                setResult(response.data.answer);
+            if (data.success) {
+                setResult(data.answer);
             } else {
-                setResult(`Error: ${response.data.error}`);
+                setResult(`Error: ${data.error}`);
             }
         } catch (err: any) {
             setResult(`AI unavailable: ${err.message}`);

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { authService } from '../services/authService';
+
 import {
     Sparkles,
     Calculator,
@@ -41,17 +40,19 @@ const LandingPage: React.FC = () => {
     const callAI = async (prompt: string, toolKey: string, setter: (val: string) => void) => {
         setLoadingTool(toolKey);
         try {
-            const token = authService.getToken() || 'public_demo_token';
-            const res = await axios.post('/api/ai/generate', {
-                prompt,
-                toolKey,
-                systemPrompt: 'You are an expert STEM tutor at Apollo Academy. Provide a helpful, encouraging, and accurate answer to the student.'
-            }, {
-                headers: { Authorization: `Bearer ${token}` }
+            const res = await fetch('https://apolloacademyaiteacher.revanaglobal.workers.dev/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt })
             });
-            setter(res.data.answer);
+            const data = await res.json();
+            if (data.success) {
+                setter(data.answer);
+            } else {
+                setter(`Error: ${data.error}`);
+            }
         } catch (err) {
-            setter("The AI tutor is currently assisting other students. Please try again or join our academy for priority access! ✨");
+            setter("AI unavailable. Please try again later.");
         } finally {
             setLoadingTool(null);
         }
