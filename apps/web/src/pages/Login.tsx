@@ -3,17 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { GraduationCap, Users, ShieldCheck, ArrowLeft, Sparkles, Heart, Home } from 'lucide-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { authService } from '../services/authService';
-import { api } from '../services/api';
+import { api, markLoginSuccess } from '../services/api';
 
 const Login: React.FC = () => {
     const navigate = useNavigate();
     const [selectedRole, setSelectedRole] = useState<'student' | 'teacher' | 'volunteer' | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const handleGoogleSuccess = async (credentialResponse: any) => {
         setIsLoading(true);
+        setError(null);
         try {
-            // In a real app, send the credential (id_token) to your backend
             const res = await api.post('/auth/google', {
                 token: credentialResponse.credential,
                 role: selectedRole
@@ -23,19 +24,18 @@ const Login: React.FC = () => {
             authService.setToken(token);
             authService.setUser(user);
 
+            // Mark successful login to prevent immediate logout
+            markLoginSuccess();
+
             navigate(`/${user.role}/dashboard`);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Login failed', err);
-            // Fallback for development if backend isn't ready
-            const mockUser = {
-                id: 'mock_user',
-                email: 'test@example.com',
-                role: selectedRole || 'student',
-                name: 'Apollo Explorer'
-            };
-            authService.setToken('mock_jwt');
-            authService.setUser(mockUser);
-            navigate(`/${mockUser.role}/dashboard`);
+            const status = err.response?.status;
+            if (status === 403) {
+                setError('Your email is not authorized to access this portal. Please contact the Apollo STEM Academy administrator.');
+            } else {
+                setError('Authentication failed. Please try again.');
+            }
         } finally {
             setIsLoading(false);
         }
@@ -105,6 +105,12 @@ const Login: React.FC = () => {
                                 <h3 className="text-2xl font-black mb-2">Welcome Back, {selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}</h3>
                                 <p className="text-sm text-gray-400 mb-8">Signin to continue to your dashboard</p>
                             </div>
+
+                            {error && (
+                                <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold mb-6 animate-in fade-in duration-300">
+                                    {error}
+                                </div>
+                            )}
 
                             <div className={`flex justify-center transition-opacity duration-300 ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}>
                                 <div className="scale-110">

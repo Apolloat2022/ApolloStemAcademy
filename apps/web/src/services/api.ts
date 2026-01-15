@@ -16,6 +16,9 @@ api.interceptors.request.use(
         const token = authService.getToken();
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
+            console.log('API Request:', config.method?.toUpperCase(), config.url, 'with token');
+        } else {
+            console.warn('API Request:', config.method?.toUpperCase(), config.url, 'WITHOUT token');
         }
         return config;
     },
@@ -25,12 +28,35 @@ api.interceptors.request.use(
 );
 
 // Response interceptor
+let justLoggedIn = false;
+let loginTimestamp = 0;
+
+// Export function to mark successful login
+export const markLoginSuccess = () => {
+    justLoggedIn = true;
+    loginTimestamp = Date.now();
+    // Reset after 5 seconds
+    setTimeout(() => {
+        justLoggedIn = false;
+    }, 5000);
+};
+
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
-        if (error.response?.status === 401) {
+        // Only logout and redirect if we get a 401 AND we're not already on the login page
+        // AND we didn't just log in (give 5 seconds grace period)
+        const timeSinceLogin = Date.now() - loginTimestamp;
+        const shouldLogout = error.response?.status === 401
+            && !window.location.pathname.includes('/login')
+            && (!justLoggedIn || timeSinceLogin > 5000);
+
+        if (shouldLogout) {
+            console.error('Authentication failed:', error.response?.data);
             authService.logout();
             window.location.href = '/login';
+        } else if (error.response?.status === 401) {
+            console.warn('401 error suppressed during grace period:', error.config?.url);
         }
         return Promise.reject(error);
     }
