@@ -67,6 +67,48 @@ const MyProgress: React.FC = () => {
                     ))}
                 </div>
 
+                {/* Mastery Map (Phase 2) */}
+                <div className="glass rounded-[40px] p-10 border-apollo-indigo/20 bg-apollo-indigo/5 mb-10 overflow-hidden relative group">
+                    <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity">
+                        <TrendingUp size={160} />
+                    </div>
+                    <div className="relative z-10 text-center mb-12">
+                        <h2 className="text-3xl font-black text-white mb-2">Mastery Map</h2>
+                        <p className="text-xs text-gray-500 font-bold uppercase tracking-[0.2em]">Live Learning Trajectory for Robin</p>
+                    </div>
+
+                    <div className="relative h-24 flex items-center justify-between px-10">
+                        {/* Background Path */}
+                        <div className="absolute left-10 right-10 h-1 bg-white/5 top-1/2 -translate-y-1/2" />
+
+                        {/* Active Progress Path */}
+                        <div
+                            className="absolute left-10 h-1 bg-apollo-indigo top-1/2 -translate-y-1/2 shadow-[0_0_20px_rgba(99,102,241,0.5)] transition-all duration-1000"
+                            style={{ width: mastery.length ? `${Math.round(mastery.reduce((a, b) => a + b.score, 0) / mastery.length)}%` : '0%' }}
+                        />
+
+                        {/* Milestones */}
+                        {[
+                            { label: 'Beginner', threshold: 0 },
+                            { label: 'Novice', threshold: 25 },
+                            { label: 'Intermediate', threshold: 50 },
+                            { label: 'Advanced', threshold: 75 },
+                            { label: 'Master', threshold: 95 },
+                        ].map((m, i) => {
+                            const avgScore = mastery.length ? Math.round(mastery.reduce((a, b) => a + b.score, 0) / mastery.length) : 0;
+                            const isActive = avgScore >= m.threshold;
+                            return (
+                                <div key={i} className="relative z-10 flex flex-col items-center">
+                                    <div className={`w-4 h-4 rounded-full border-2 transition-all duration-500 ${isActive ? 'bg-apollo-indigo border-apollo-indigo scale-125 shadow-[0_0_15px_rgba(99,102,241,0.5)]' : 'bg-gray-800 border-white/10'}`} />
+                                    <div className={`absolute top-8 font-black text-[10px] uppercase tracking-widest whitespace-nowrap ${isActive ? 'text-white' : 'text-gray-600'}`}>
+                                        {m.label}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+
                 <div className="grid lg:grid-cols-2 gap-8">
                     {/* Subject Mastery Visualization */}
                     <div className="glass rounded-3xl p-8 border-white/5">
