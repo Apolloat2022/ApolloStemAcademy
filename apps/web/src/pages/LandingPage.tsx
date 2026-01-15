@@ -110,7 +110,7 @@ const LandingPage: React.FC = () => {
                         <a href="#tools" className="text-gray-300 hover:text-white transition">AI Tools</a>
                         <a href="#enroll" className="text-gray-300 hover:text-white transition">Volunteer</a>
                         <a href="#sponsors" className="text-gray-300 hover:text-white transition">Sponsors</a>
-                        <button onClick={() => navigate('/login')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-white transition">Student Login</button>
+                        <button onClick={() => navigate('/login')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded text-white transition">Login</button>
                     </nav>
                     <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="md:hidden text-white focus:outline-none">
                         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
@@ -123,7 +123,7 @@ const LandingPage: React.FC = () => {
                         <a href="#tools" className="text-gray-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>AI Tools</a>
                         <a href="#enroll" className="text-gray-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Volunteer</a>
                         <a href="#sponsors" className="text-gray-300 hover:text-white" onClick={() => setMobileMenuOpen(false)}>Sponsors</a>
-                        <button onClick={() => navigate('/login')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded w-fit">Student Login</button>
+                        <button onClick={() => navigate('/login')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded w-fit">Login</button>
                     </nav>
                 )}
             </header>
