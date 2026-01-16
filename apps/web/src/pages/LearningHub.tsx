@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
-import { Sparkles, BrainCircuit, Rocket, Target, Zap, ArrowRight, BookOpen, Calculator, Beaker, X, MessageSquare, Microscope } from 'lucide-react';
+import { Sparkles, BrainCircuit, Rocket, Target, Zap, ArrowRight, BookOpen, Calculator, Beaker, X } from 'lucide-react';
 import { api } from '../services/api';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
