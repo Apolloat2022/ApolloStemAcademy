@@ -27,8 +27,12 @@ const MyProgress: React.FC = () => {
         fetchData();
     }, []);
 
+    const calculatedHours = mastery.length
+        ? (mastery.reduce((a, b) => a + b.level, 0) * 1.2 + achievements.filter(a => a.earned).length * 0.5).toFixed(1)
+        : '0';
+
     const stats = [
-        { label: 'Weekly Activity', value: '12.5 hrs', icon: Zap, color: 'text-yellow-400' },
+        { label: 'Weekly Activity', value: `${calculatedHours} hrs`, icon: Zap, color: 'text-yellow-400' },
         { label: 'Avg. Accuracy', value: mastery.length ? `${Math.round(mastery.reduce((a, b) => a + b.score, 0) / mastery.length)}%` : '0%', icon: Target, color: 'text-green-400' },
         { label: 'Level Sum', value: mastery.reduce((a, b) => a + b.level, 0), icon: Star, color: 'text-blue-400' },
     ];

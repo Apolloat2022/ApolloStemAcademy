@@ -95,10 +95,16 @@ const MyAssignments: React.FC = () => {
 
                                     <div className="flex items-center gap-3 self-end md:self-auto">
                                         {asgn.status !== 'completed' ? (
+
                                             <>
                                                 {asgn.status === 'in-progress' && (
                                                     <button
-                                                        onClick={() => handleSubmission(asgn.id)}
+                                                        onClick={async () => {
+                                                            const content = window.prompt("Enter your assignment response or URL:");
+                                                            if (content) {
+                                                                await handleSubmission(asgn.id);
+                                                            }
+                                                        }}
                                                         className="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold flex items-center gap-2 hover:bg-white/10 transition-all"
                                                     >
                                                         <Send size={18} />
@@ -106,7 +112,11 @@ const MyAssignments: React.FC = () => {
                                                     </button>
                                                 )}
                                                 <button
-                                                    onClick={() => navigate('/student/hub')}
+                                                    onClick={() => {
+                                                        const toolMap: Record<string, string> = { 'Math': 'math', 'Science': 'science', 'Language Arts': 'study' };
+                                                        const tool = toolMap[asgn.subject] || 'study';
+                                                        navigate(`/student/hub?tool=${tool}`);
+                                                    }}
                                                     className="px-6 py-3 bg-apollo-indigo text-white rounded-xl font-bold flex items-center gap-2 hover:scale-105 transition-all shadow-lg shadow-apollo-indigo/20"
                                                 >
                                                     <Play size={18} fill="currentColor" />
