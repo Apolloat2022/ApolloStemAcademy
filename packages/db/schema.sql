@@ -115,16 +115,41 @@ CREATE TABLE student_mastery (
     FOREIGN KEY (student_id) REFERENCES users(id)
 );
 
+-- Google OAuth tokens for Classroom Sync
+CREATE TABLE google_oauth_tokens (
+    user_id TEXT PRIMARY KEY,
+    access_token TEXT NOT NULL,
+    refresh_token TEXT,
+    expires_at DATETIME,
+    scope TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
 -- Student Personal Tasks
 CREATE TABLE student_tasks (
     id TEXT PRIMARY KEY,
     student_id TEXT NOT NULL,
     title TEXT NOT NULL,
+    description TEXT,
     subject TEXT,
     due_date TEXT,
     priority TEXT DEFAULT 'Med',
+    source TEXT DEFAULT 'student_created', -- 'student_created' or 'teacher_assigned'
+    assigned_by TEXT,
     is_completed BOOLEAN DEFAULT 0,
+    completed_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (student_id) REFERENCES users(id),
+    FOREIGN KEY (assigned_by) REFERENCES users(id)
+);
+
+-- Parent-Student Mapping
+CREATE TABLE parent_student_map (
+    parent_id TEXT NOT NULL,
+    student_id TEXT NOT NULL,
+    PRIMARY KEY (parent_id, student_id),
+    FOREIGN KEY (parent_id) REFERENCES users(id),
     FOREIGN KEY (student_id) REFERENCES users(id)
 );
 

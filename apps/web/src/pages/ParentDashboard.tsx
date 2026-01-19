@@ -10,7 +10,9 @@ import {
     Heart,
     ChevronRight,
     Sparkles,
-    Info
+    Info,
+    RefreshCw,
+    Activity
 } from 'lucide-react';
 import { api } from '../services/api';
 import { authService } from '../services/authService';
@@ -58,6 +60,11 @@ const ParentDashboard: React.FC = () => {
                         <div className="px-3 py-1 rounded-full bg-apollo-indigo/10 text-apollo-indigo font-black text-[10px] uppercase tracking-widest">
                             <Eye size={12} className="inline mr-1" /> Observation Mode
                         </div>
+                        {data?.lastSynced && (
+                            <div className="px-3 py-1 rounded-full bg-green-500/10 text-green-400 font-black text-[10px] uppercase tracking-widest flex items-center gap-1">
+                                <RefreshCw size={10} className="animate-spin-slow" /> Synced: {new Date(data.lastSynced).toLocaleDateString()}
+                            </div>
+                        )}
                     </div>
                     <h1 className="text-4xl font-black text-white mb-2">Hello, {authService.getUser()?.name.split(' ')[0]}</h1>
                     <p className="text-gray-400">Monitoring progress for <span className="text-white font-bold">{student.name}</span>.</p>
@@ -84,17 +91,19 @@ const ParentDashboard: React.FC = () => {
                         </div>
 
                         <div className="glass rounded-[40px] p-8 border-white/5">
-                            <h2 className="text-xl font-bold text-white mb-6">Recent Learning Missions</h2>
+                            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                                <Activity size={20} className="text-indigo-400" /> Recent Learning Missions
+                            </h2>
                             <div className="space-y-4">
-                                {(data?.recentActivity || []).map((log: any, idx: number) => (
+                                {(data?.recentActivity || []).length > 0 ? (data?.recentActivity || []).map((log: any, idx: number) => (
                                     <div key={idx} className="flex items-center justify-between p-5 bg-white/5 rounded-2xl border border-white/5 group hover:bg-white/10 transition-all">
                                         <div className="flex items-center gap-4">
                                             <div className="p-3 bg-white/5 rounded-xl text-gray-400 group-hover:text-white transition-colors">
                                                 <Calendar size={18} />
                                             </div>
                                             <div>
-                                                <div className="font-bold text-white">{log.activity_type}</div>
-                                                <div className="text-xs text-gray-500 uppercase font-black tracking-widest">{log.tool_id}</div>
+                                                <div className="font-bold text-white">{log.activity_type.replace(/_/g, ' ')}</div>
+                                                <div className="text-xs text-indigo-400 uppercase font-black tracking-widest">{log.tool_id}</div>
                                             </div>
                                         </div>
                                         <div className="text-right">
@@ -102,7 +111,9 @@ const ParentDashboard: React.FC = () => {
                                             <div className="text-[10px] text-gray-600 font-bold uppercase tracking-tighter">Performance</div>
                                         </div>
                                     </div>
-                                ))}
+                                )) : (
+                                    <div className="py-10 text-center text-gray-500 italic">No recent activity detected. Connect Classroom to sync work.</div>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
-import { Users, BookOpen, ClipboardCheck, BarChart3, Sparkles, X, BrainCircuit, CheckCircle2, RefreshCw } from 'lucide-react';
+import { Users, BookOpen, ClipboardCheck, BarChart3, Sparkles, X, BrainCircuit, CheckCircle2, RefreshCw, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import AssignmentSuite from './AssignmentSuite';
@@ -10,7 +10,9 @@ const TeacherDashboard: React.FC = () => {
     const navigate = useNavigate();
     const [reviewItem, setReviewItem] = useState<any>(null);
     const [aiInsight, setAiInsight] = useState<string | null>(null);
+    const [aiFeedbackDraft, setAiFeedbackDraft] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [isDraftingFeedback, setIsDraftingFeedback] = useState(false);
     const [pendingSubmissions, setPendingSubmissions] = useState<any[]>([]);
     const [activeTab, setActiveTab] = useState<'overview' | 'assignments'>('overview');
     const [isSyncing, setIsSyncing] = useState(false);
@@ -105,14 +107,74 @@ const TeacherDashboard: React.FC = () => {
                                 </p>
                             </div>
 
-                            <div className="mt-6 flex gap-4">
-                                <button className="flex-1 bg-green-500 text-black font-bold py-4 rounded-2xl hover:bg-green-400 transition-all flex items-center justify-center gap-2">
-                                    <CheckCircle2 size={20} />
-                                    Approve & Grade
-                                </button>
-                                <button className="px-6 bg-white/5 border border-white/10 rounded-2xl font-bold hover:bg-white/10 transition-all">
-                                    Request Revision
-                                </button>
+                            <div className="mt-8 pt-8 border-t border-white/5">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Grading & Feedback</h3>
+                                    {!aiFeedbackDraft && !isDraftingFeedback && (
+                                        <button
+                                            onClick={async () => {
+                                                setIsDraftingFeedback(true);
+                                                try {
+                                                    const res = await api.post('/api/ai/draft-feedback', {
+                                                        submissionContent: reviewItem.content,
+                                                        title: reviewItem.assignmentTitle,
+                                                        description: reviewItem.description
+                                                    });
+                                                    setAiFeedbackDraft(res.data.draft);
+                                                } catch (err) {
+                                                    console.error('Draft failed', err);
+                                                    alert('AI Co-pilot is busy. Please try again.');
+                                                } finally {
+                                                    setIsDraftingFeedback(false);
+                                                }
+                                            }}
+                                            className="text-xs font-bold text-indigo-400 hover:text-indigo-300 flex items-center gap-1.5 transition-colors group"
+                                        >
+                                            <Sparkles size={14} className="group-hover:animate-pulse" />
+                                            AI Draft Feedback
+                                        </button>
+                                    )}
+                                </div>
+
+                                {aiFeedbackDraft ? (
+                                    <div className="bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-6 mb-6 animate-in fade-in slide-in-from-top-2">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2 text-indigo-400 font-black text-[10px] uppercase tracking-widest">
+                                                <BrainCircuit size={14} /> AI Suggested Feedback
+                                            </div>
+                                            <button onClick={() => setAiFeedbackDraft(null)} className="text-gray-500 hover:text-white transition-colors">
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                        <p className="text-gray-300 text-sm italic leading-relaxed mb-4">
+                                            "{aiFeedbackDraft}"
+                                        </p>
+                                        <button
+                                            className="text-xs font-bold text-indigo-400 hover:underline"
+                                            onClick={() => {
+                                                alert('Draft ready to use!');
+                                                setAiFeedbackDraft(null);
+                                            }}
+                                        >
+                                            Use this draft
+                                        </button>
+                                    </div>
+                                ) : isDraftingFeedback ? (
+                                    <div className="bg-white/5 border border-white/5 rounded-2xl p-8 mb-6 text-center">
+                                        <Loader2 className="w-6 h-6 text-indigo-500 animate-spin mx-auto mb-2" />
+                                        <p className="text-gray-500 text-xs font-medium animate-pulse">AI is reviewing submission...</p>
+                                    </div>
+                                ) : null}
+
+                                <div className="flex gap-4">
+                                    <button className="flex-1 bg-green-500 text-black font-bold py-4 rounded-2xl hover:bg-green-400 transition-all flex items-center justify-center gap-2">
+                                        <CheckCircle2 size={20} />
+                                        Approve & Grade
+                                    </button>
+                                    <button className="px-6 bg-white/5 border border-white/10 rounded-2xl font-bold hover:bg-white/10 transition-all">
+                                        Request Revision
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

@@ -6,7 +6,7 @@ export const JWT_SECRET = 'apollo-super-secret-key' // In production, use wrangl
 export interface JWTPayload {
     id: string
     email: string
-    role: 'student' | 'teacher' | 'volunteer'
+    role: 'student' | 'teacher' | 'volunteer' | 'parent'
     exp: number
     [key: string]: unknown
 }

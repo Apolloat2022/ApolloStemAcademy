@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
-import { Plus, BookOpen, Clock, Users, Sparkles, Filter, ChevronRight, Calculator, Beaker, FileText, BookCopy, BrainCircuit, X, CheckCircle2, Trash2, RefreshCw } from 'lucide-react';
+import { Plus, BookOpen, Clock, Users, Sparkles, Filter, ChevronRight, Calculator, Beaker, FileText, BookCopy, BrainCircuit, X, CheckCircle2, Trash2 } from 'lucide-react';
 import { api } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 
@@ -19,8 +19,6 @@ const AssignmentSuite: React.FC<{ embedMode?: boolean }> = ({ embedMode }) => {
     const fetchAssignments = async () => {
         try {
             const res = await api.get('/api/assignments');
-            // If empty (first load), we might want to show placeholders or just empty state
-            // For now, we mix real results.
             if (res.data && res.data.length > 0) {
                 setAssignments(res.data);
             } else {
@@ -33,9 +31,43 @@ const AssignmentSuite: React.FC<{ embedMode?: boolean }> = ({ embedMode }) => {
         }
     };
 
+    const [students, setStudents] = useState<any[]>([]);
+    const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+    const [isAssigning, setIsAssigning] = useState(false);
+    const [assignForm, setAssignForm] = useState({ title: '', description: '', dueDate: 'Next Monday', priority: 'High', subject: 'STEM' });
+
+    const fetchStudents = async () => {
+        try {
+            const res = await api.get('/api/teacher/students');
+            setStudents(res.data);
+        } catch (err) {
+            console.error('Failed to fetch students', err);
+        }
+    };
+
     useEffect(() => {
         fetchAssignments();
+        fetchStudents();
     }, []);
+
+    const handleDirectAssign = async () => {
+        if (selectedStudents.length === 0 || !assignForm.title) return;
+        try {
+            setLoading(true);
+            await api.post('/api/teacher/assign-tasks', {
+                studentIds: selectedStudents,
+                task: assignForm
+            });
+            setIsAssigning(false);
+            setSelectedStudents([]);
+            setAssignForm({ title: '', description: '', dueDate: 'Next Monday', priority: 'High', subject: 'STEM' });
+            alert(`Task assigned to ${selectedStudents.length} students!`);
+        } catch (err) {
+            alert('Failed to assign task');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleCreate = async () => {
         try {
@@ -77,10 +109,36 @@ const AssignmentSuite: React.FC<{ embedMode?: boolean }> = ({ embedMode }) => {
                 title: 'Quadratic Intervention',
                 description: 'Specialized 5-problem worksheet focusing on factoring quadratics with negative coefficients.',
                 students: '8 Students',
+                subject: 'Math',
                 tool: 'Worksheet Generator'
             });
             setIsGeneratingIntervention(false);
         }, 2000);
+    };
+
+    const publishIntervention = async () => {
+        if (!interventionTask) return;
+        // Mocking student IDs for intervention based on stats (in real app, AI provides list)
+        const demoStudentIds = students.slice(0, 3).map(s => s.id);
+        try {
+            setLoading(true);
+            await api.post('/api/teacher/assign-tasks', {
+                studentIds: demoStudentIds,
+                task: {
+                    title: `[Intervention] ${interventionTask.title}`,
+                    description: interventionTask.description,
+                    dueDate: 'In 2 Days',
+                    priority: 'High',
+                    subject: interventionTask.subject
+                }
+            });
+            setInterventionTask(null);
+            alert(`Intervention pushed to ${demoStudentIds.length} students.`);
+        } catch (e) {
+            alert('Push failed');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -89,24 +147,21 @@ const AssignmentSuite: React.FC<{ embedMode?: boolean }> = ({ embedMode }) => {
                 {!embedMode && (
                     <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
                         <div>
-                            <h1 className="text-4xl font-bold mb-2 text-white">Assignment Suite</h1>
+                            <h1 className="text-4xl font-bold mb-2 text-white italic">Assignment <span className="text-apollo-indigo">Suite</span></h1>
                             <p className="text-gray-400">Create and curate AI-enhanced learning experiences for your class.</p>
                         </div>
                         <div className="flex gap-4">
                             <button
-                                onClick={async () => {
-                                    await api.post('/api/google/sync');
-                                    alert('Google Classroom Linked & Synced!');
-                                }}
-                                className="bg-white/5 border border-white/10 hover:bg-white/10 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all"
+                                onClick={() => setIsAssigning(true)}
+                                className="bg-white/5 border border-white/10 hover:bg-white/10 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all group"
                             >
-                                <RefreshCw size={20} /> Link Google Classroom
+                                <Users size={20} className="text-indigo-400 group-hover:scale-110" /> Assign To Students
                             </button>
                             <button
                                 onClick={() => setIsCreating(true)}
                                 className="bg-apollo-indigo hover:bg-apollo-indigo/80 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all hover:scale-105 shadow-lg shadow-apollo-indigo/20"
                             >
-                                <Plus size={20} /> Create Assignment
+                                <Plus size={20} /> Create Class Work
                             </button>
                         </div>
                     </header>
@@ -117,7 +172,7 @@ const AssignmentSuite: React.FC<{ embedMode?: boolean }> = ({ embedMode }) => {
                     <div className="lg:col-span-2 space-y-6">
                         <div className="flex items-center justify-between mb-2">
                             <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                <BookOpen size={20} className="text-apollo-indigo" /> Active Tasks
+                                <BookOpen size={20} className="text-apollo-indigo" /> Global Class Tasks
                             </h2>
                             <button className="text-xs text-gray-500 hover:text-white flex items-center gap-1 font-bold">
                                 <Filter size={14} /> FILTER
@@ -174,7 +229,6 @@ const AssignmentSuite: React.FC<{ embedMode?: boolean }> = ({ embedMode }) => {
 
                     {/* AI Insights Sidebar */}
                     <div className="space-y-8">
-                        {/* ... Existing AI Insights ... */}
                         <div className="glass rounded-3xl p-8 border-yellow-500/10 bg-yellow-500/5 relative overflow-hidden">
                             {interventionTask ? (
                                 <div className="animate-in fade-in zoom-in duration-300">
@@ -190,18 +244,21 @@ const AssignmentSuite: React.FC<{ embedMode?: boolean }> = ({ embedMode }) => {
                                         <div className="text-[10px] text-gray-500 bg-white/5 px-2 py-1 rounded-md border border-white/5">{interventionTask.students} targeted</div>
                                         <div className="text-[10px] text-gray-500 bg-white/5 px-2 py-1 rounded-md border border-white/5">{interventionTask.tool}</div>
                                     </div>
-                                    <button className="w-full py-4 bg-apollo-indigo text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg shadow-apollo-indigo/20">
-                                        Publish Intervention
+                                    <button
+                                        onClick={publishIntervention}
+                                        className="w-full py-4 bg-apollo-indigo text-white rounded-2xl font-bold hover:scale-105 transition-all shadow-lg shadow-apollo-indigo/20"
+                                    >
+                                        Push to Struggling Students
                                     </button>
                                 </div>
                             ) : (
                                 <>
                                     <div className="flex items-center gap-3 mb-6">
                                         <Sparkles size={24} className="text-yellow-400" />
-                                        <h2 className="text-xl font-bold text-white">AI Suggestion</h2>
+                                        <h2 className="text-xl font-bold text-white">AI Intervention</h2>
                                     </div>
                                     <p className="text-gray-400 text-sm leading-relaxed mb-6">
-                                        Based on recent activity in "Math Solver", 8 students are finding quadratic equations particularly challenging.
+                                        Based on recent activity in "Math Solver", 8 students are finding quadratic equations challenging.
                                     </p>
                                     <button
                                         onClick={generateIntervention}
@@ -214,7 +271,7 @@ const AssignmentSuite: React.FC<{ embedMode?: boolean }> = ({ embedMode }) => {
                                                 Analyzing Needs...
                                             </>
                                         ) : (
-                                            'Generate Intervention Task'
+                                            'Identify & Help Students'
                                         )}
                                     </button>
                                 </>
@@ -222,7 +279,7 @@ const AssignmentSuite: React.FC<{ embedMode?: boolean }> = ({ embedMode }) => {
                         </div>
 
                         <div className="glass rounded-3xl p-8 border-white/5">
-                            <h2 className="text-xl font-bold text-white mb-6">Quick Tools</h2>
+                            <h2 className="text-xl font-bold text-white mb-6">Curriculum Tools</h2>
                             <div className="grid grid-cols-2 gap-4">
                                 {aiTools.map((tool, idx) => (
                                     <div
@@ -238,6 +295,88 @@ const AssignmentSuite: React.FC<{ embedMode?: boolean }> = ({ embedMode }) => {
                         </div>
                     </div>
                 </div>
+
+                {/* Direct Student Assignment Modal */}
+                {isAssigning && (
+                    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-6">
+                        <div className="glass w-full max-w-4xl rounded-[40px] border-indigo-500/20 flex flex-col md:flex-row overflow-hidden shadow-3xl animate-in zoom-in-95 duration-300">
+                            {/* Student Selector */}
+                            <div className="w-full md:w-1/2 p-10 border-r border-white/5 flex flex-col">
+                                <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-3">
+                                    <Users className="text-indigo-400" />
+                                    Select Students
+                                </h2>
+                                <div className="space-y-3 overflow-y-auto max-h-[400px] pr-2 custom-scrollbar">
+                                    {students.map(s => (
+                                        <label key={s.id} className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${selectedStudents.includes(s.id) ? 'bg-indigo-600/20 border-indigo-500/50' : 'bg-white/5 border-white/5 hover:bg-white/10'}`}>
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center font-bold text-xs uppercase">{s.name[0]}</div>
+                                                <div className="font-bold text-sm text-white">{s.name}</div>
+                                            </div>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedStudents.includes(s.id)}
+                                                onChange={() => {
+                                                    setSelectedStudents(prev =>
+                                                        prev.includes(s.id) ? prev.filter(id => id !== s.id) : [...prev, s.id]
+                                                    )
+                                                }}
+                                                className="w-5 h-5 rounded-md border-white/20 bg-black/40 text-indigo-600 focus:ring-0"
+                                            />
+                                        </label>
+                                    ))}
+                                </div>
+                                <div className="mt-auto pt-6 border-t border-white/5 flex justify-between items-center">
+                                    <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{selectedStudents.length} Selected</span>
+                                    <button onClick={() => setSelectedStudents(students.map(s => s.id))} className="text-xs text-indigo-400 font-bold hover:underline">Select All</button>
+                                </div>
+                            </div>
+                            {/* Task Details */}
+                            <div className="w-full md:w-1/2 p-10 bg-white/[0.02]">
+                                <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-3">
+                                    <Sparkles className="text-indigo-400" />
+                                    Task Details
+                                </h2>
+                                <div className="space-y-6">
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Subject</label>
+                                        <input
+                                            value={assignForm.subject} onChange={e => setAssignForm({ ...assignForm, subject: e.target.value })}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-indigo-500/50 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Task Title</label>
+                                        <input
+                                            value={assignForm.title} onChange={e => setAssignForm({ ...assignForm, title: e.target.value })}
+                                            placeholder="e.g. Personalized Physics Drill"
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-indigo-500/50 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Instructions</label>
+                                        <textarea
+                                            value={assignForm.description} onChange={e => setAssignForm({ ...assignForm, description: e.target.value })}
+                                            rows={3}
+                                            placeholder="Focus on the kinematics section..."
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-3 text-white focus:border-indigo-500/50 outline-none resize-none"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <button onClick={() => setIsAssigning(false)} className="py-4 bg-white/5 rounded-2xl font-bold text-gray-400 hover:text-white transition-all">Cancel</button>
+                                        <button
+                                            onClick={handleDirectAssign}
+                                            disabled={selectedStudents.length === 0 || !assignForm.title}
+                                            className="py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-600/20 hover:bg-indigo-500 transition-all disabled:opacity-50 disabled:scale-100"
+                                        >
+                                            Push Mission
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Create Modal */}
                 {isCreating && (

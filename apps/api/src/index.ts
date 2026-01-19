@@ -4,6 +4,7 @@ import type { D1Database } from '@cloudflare/workers-types'
 import { createToken, authMiddleware, roleMiddleware } from './auth'
 import { aiIntelligence, geminiService } from './ai_services'
 import { User } from '@apollo/types'
+import { getGoogleAuthUrl, exchangeCodeForTokens } from './google_auth'
 
 const app = new Hono<{ Bindings: { DB: D1Database } }>()
 
@@ -97,6 +98,59 @@ app.post('/auth/google', async (c) => {
   }
 })
 
+// Google OAuth Flow for Classroom Sync
+app.get('/api/auth/google/url', authMiddleware, async (c) => {
+  const { redirectUri } = c.req.query();
+  if (!redirectUri) return c.json({ error: 'Missing redirectUri' }, 400);
+
+  const url = await getGoogleAuthUrl(c.env, redirectUri);
+  return c.json({ url });
+});
+
+app.post('/api/auth/google/callback', authMiddleware, async (c) => {
+  const payload = c.get('jwtPayload') as any;
+  const { code, redirectUri } = await c.req.json();
+
+  if (!code || !redirectUri) return c.json({ error: 'Missing code or redirectUri' }, 400);
+
+  try {
+    const tokens = await exchangeCodeForTokens(c.env, code, redirectUri) as any;
+
+    // Save tokens to DB
+    if (c.env.DB) {
+      await c.env.DB.prepare(`
+        INSERT INTO google_oauth_tokens (user_id, access_token, refresh_token, expires_at, scope)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(user_id) DO UPDATE SET
+          access_token = excluded.access_token,
+          refresh_token = COALESCE(excluded.refresh_token, refresh_token),
+          expires_at = excluded.expires_at,
+          scope = excluded.scope
+      `).bind(
+        payload.id,
+        tokens.access_token,
+        tokens.refresh_token || null,
+        new Date(Date.now() + (tokens.expires_in || 3600) * 1000).toISOString(),
+        tokens.scope || ''
+      ).run();
+    }
+
+    return c.json({ success: true });
+  } catch (err: any) {
+    console.error('OAuth callback failed', err);
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});
+
+app.get('/api/auth/google/status', authMiddleware, async (c) => {
+  const payload = c.get('jwtPayload') as any;
+  if (c.env.DB) {
+    const token = await c.env.DB.prepare('SELECT user_id FROM google_oauth_tokens WHERE user_id = ?').bind(payload.id).first();
+    return c.json({ isConnected: !!token });
+  }
+  return c.json({ isConnected: false });
+});
+
 // Protected Routes Example
 app.get('/api/student/dashboard-stats', authMiddleware, roleMiddleware(['student']), async (c) => {
   const payload = c.get('jwtPayload') as any;
@@ -157,14 +211,14 @@ app.post('/api/student/classroom-link', authMiddleware, roleMiddleware(['student
 
 app.post('/api/student/tasks', authMiddleware, roleMiddleware(['student']), async (c) => {
   const payload = c.get('jwtPayload') as any;
-  const { title, subject, due_date, priority } = await c.req.json();
+  const { title, description, subject, due_date, priority, source } = await c.req.json();
   const id = crypto.randomUUID();
   if (c.env.DB) {
     await c.env.DB.prepare(
-      'INSERT INTO student_tasks (id, student_id, title, subject, due_date, priority) VALUES (?, ?, ?, ?, ?, ?)'
-    ).bind(id, payload.id, title, subject || 'General', due_date || 'TBD', priority || 'Med').run();
+      'INSERT INTO student_tasks (id, student_id, title, description, subject, due_date, priority, source) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    ).bind(id, payload.id, title, description || '', subject || 'General', due_date || 'TBD', priority || 'Med', source || 'student_created').run();
   }
-  return c.json({ success: true, id, title, subject, due_date, priority, is_completed: 0 });
+  return c.json({ success: true, id, title, description, subject, due_date, priority, source, is_completed: 0 });
 })
 
 app.put('/api/student/tasks/:id', authMiddleware, roleMiddleware(['student']), async (c) => {
@@ -203,6 +257,33 @@ app.post('/api/ai/ap-strategy', authMiddleware, roleMiddleware(['teacher']), asy
   }
 
   return c.json({ strategy });
+})
+
+app.post('/api/ai/parse-task', authMiddleware, async (c) => {
+  const { text } = await c.req.json();
+  const apiKey = (c.env as any).GEMINI_API_KEY;
+
+  const prompt = `Parse this task description into structured data: "${text}"
+  Return a raw JSON object with: title, subject (math, physics, cs, chemistry, biology, english, other), 
+  dueDate (string format like "tomorrow", "Jan 25", etc), priority (Low, Med, High). 
+  Only return the JSON, nothing else.`;
+
+  let parsed = { title: text, subject: 'General', dueDate: 'TBD', priority: 'Med' };
+
+  if (apiKey) {
+    try {
+      const res = await geminiService.generate(apiKey, prompt, "You are an AI task assistant.");
+      if (res) {
+        // Clean up markdown if Gemini wrapped it
+        const cleaned = res.replace(/```json/g, '').replace(/```/g, '').trim();
+        parsed = JSON.parse(cleaned);
+      }
+    } catch (e) {
+      console.error('AI Parse failed', e);
+    }
+  }
+
+  return c.json(parsed);
 })
 
 app.get('/api/student/assignments', authMiddleware, roleMiddleware(['student']), async (c) => {
@@ -290,6 +371,38 @@ app.delete('/api/assignments/:id', authMiddleware, roleMiddleware(['teacher']), 
   return c.json({ success: true });
 });
 
+app.get('/api/teacher/students', authMiddleware, roleMiddleware(['teacher']), async (c) => {
+  if (c.env.DB) {
+    const { results } = await c.env.DB.prepare('SELECT id, name, email FROM users WHERE role = "student"').all();
+    return c.json(results);
+  }
+  return c.json([]);
+});
+
+app.post('/api/teacher/assign-tasks', authMiddleware, roleMiddleware(['teacher']), async (c) => {
+  const payload = c.get('jwtPayload') as any;
+  const { studentIds, task } = await c.req.json();
+
+  if (c.env.DB) {
+    try {
+      const stmt = c.env.DB.prepare(`
+        INSERT INTO student_tasks (id, student_id, title, description, subject, due_date, priority, source, assigned_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const promises = studentIds.map((studentId: string) =>
+        stmt.bind(crypto.randomUUID(), studentId, task.title, task.description || '', task.subject || 'General', task.dueDate || 'TBD', task.priority || 'Med', 'teacher_assigned', payload.id).run()
+      );
+
+      await Promise.all(promises);
+      return c.json({ success: true, count: studentIds.length });
+    } catch (e: any) {
+      return c.json({ success: false, error: e.message }, 500);
+    }
+  }
+  return c.json({ success: false, message: 'DB not found' }, 500);
+});
+
 // Student Management
 app.post('/api/students', authMiddleware, roleMiddleware(['teacher']), async (c) => {
   const { name, email, studentId } = await c.req.json();
@@ -344,27 +457,38 @@ app.get('/api/submissions/pending', authMiddleware, roleMiddleware(['teacher']),
 app.get('/api/parent/child-data', authMiddleware, roleMiddleware(['parent']), async (c) => {
   const payload = c.get('jwtPayload') as any;
 
-  // In a real app, we'd have a parent_student_map table. 
-  // For now, we mock finding the "first" student for this parent's email domain or similar.
-  const student = await c.env.DB.prepare(
-    'SELECT * FROM users WHERE role = "student" LIMIT 1'
-  ).first();
+  if (c.env.DB) {
+    // 1. Find the linked student(s) for this parent
+    const map = await c.env.DB.prepare(
+      'SELECT student_id FROM parent_student_map WHERE parent_id = ? LIMIT 1'
+    ).bind(payload.id).first() as any;
 
-  if (!student) return c.json({ error: 'No student found' }, 404);
+    let studentId = map?.student_id;
 
-  const progress = await c.env.DB.prepare(
-    'SELECT * FROM progress_logs WHERE student_id = ? ORDER BY created_at DESC LIMIT 5'
-  ).bind(student.id).all();
+    // Demo Fallback: If no mapping exists, find the first student
+    if (!studentId) {
+      const firstStudent = await c.env.DB.prepare('SELECT id FROM users WHERE role = "student" LIMIT 1').first() as any;
+      studentId = firstStudent?.id;
+    }
 
-  const assignments = await c.env.DB.prepare(
-    'SELECT * FROM assignments WHERE class_id IN (SELECT id FROM classes) LIMIT 5'
-  ).all();
+    if (!studentId) return c.json({ error: 'No student found' }, 404);
 
-  return c.json({
-    student,
-    recentActivity: progress.results,
-    activeAssignments: assignments.results
-  });
+    const [student, progress, assignments, tokens] = await Promise.all([
+      c.env.DB.prepare('SELECT id, name, email, google_classroom_link FROM users WHERE id = ?').bind(studentId).first() as any,
+      c.env.DB.prepare('SELECT * FROM progress_logs WHERE student_id = ? ORDER BY created_at DESC LIMIT 10').bind(studentId).all(),
+      c.env.DB.prepare('SELECT a.*, c.name as class_name FROM assignments a JOIN enrollments e ON a.class_id = e.class_id JOIN classes c ON a.class_id = c.id WHERE e.student_id = ? ORDER BY due_date ASC LIMIT 5').bind(studentId).all(),
+      c.env.DB.prepare('SELECT created_at FROM google_oauth_tokens WHERE user_id = ?').bind(studentId).first() as any
+    ]);
+
+    return c.json({
+      student,
+      recentActivity: progress.results,
+      activeAssignments: assignments.results,
+      lastSynced: tokens?.created_at || null
+    });
+  }
+
+  return c.json({ error: 'DB not found' }, 500);
 })
 
 app.get('/api/messages/:chatId', authMiddleware, async (c) => {
@@ -388,25 +512,51 @@ app.post('/api/messages', authMiddleware, async (c) => {
 })
 
 app.get('/api/parent/ai-summary', authMiddleware, roleMiddleware(['parent']), async (c) => {
-  const apiKey = (c.env as any).GEMINI_API_KEY
-  // In a real app, gather student progress data first
-  const studentData = "Student showed improvement in Math (85%) but needs more help in Science worksheets."
+  const payload = c.get('jwtPayload') as any;
+  const apiKey = (c.env as any).GEMINI_API_KEY;
 
-  const prompt = `Synthesize this student data into a warm, encouraging 3-sentence summary for a parent. Focus on a "growth mindset" tone. Data: ${studentData}`
+  if (c.env.DB) {
+    // 1. Identify student
+    const map = await c.env.DB.prepare('SELECT student_id FROM parent_student_map WHERE parent_id = ? LIMIT 1').bind(payload.id).first() as any;
+    const studentId = map?.student_id || (await c.env.DB.prepare('SELECT id FROM users WHERE role = "student" LIMIT 1').first() as any)?.id;
 
-  // Use a simple fetch to Gemini for now as a lightweight worker pattern
-  const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }]
-    })
-  });
+    if (!studentId) return c.json({ summary: "We are still collecting data for your student. Check back soon for a weekly synthesis!" });
 
-  const genData = await res.json() as any;
-  const summary = genData.candidates?.[0]?.content?.parts?.[0]?.text || "Excellent progress this week! Encourage continued exploration of new STEM concepts.";
+    // 2. Fetch recent activity for AI analysis
+    const logs = await c.env.DB.prepare(
+      'SELECT activity_type, performance_score, tool_id FROM progress_logs WHERE student_id = ? AND created_at > datetime("now", "-7 days")'
+    ).bind(studentId).all();
 
-  return c.json({ summary });
+    const studentData = logs.results.length > 0
+      ? JSON.stringify(logs.results)
+      : "Student joined recently. High engagement with the initial platform tour.";
+
+    const prompt = `Synthesize this student activity data from the last 7 days into a warm, encouraging 3-sentence summary for a parent. 
+    Focus on specific strengths identified in the logs and maintain a "growth mindset" tone. 
+    Data: ${studentData}`;
+
+    if (apiKey) {
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        });
+
+        const genData = await res.json() as any;
+        const summary = genData.candidates?.[0]?.content?.parts?.[0]?.text || "Excellent progress this week! Your student is engaging well with STEM missions.";
+        return c.json({ summary });
+      } catch (e) {
+        console.error('AI Summary generation failed', e);
+      }
+    }
+
+    return c.json({ summary: "Your student is making great strides in their STEM journey! They've been active across multiple learning modules this week." });
+  }
+
+  return c.json({ error: 'DB not found' }, 500);
 })
 
 // --- Gamified Mastery & AI Learning Paths ---
@@ -451,6 +601,75 @@ app.get('/api/student/achievements', authMiddleware, async (c) => {
   return c.json(achievements.results);
 })
 
+app.get('/api/student/leaderboard', authMiddleware, async (c) => {
+  if (c.env.DB) {
+    try {
+      // Calculate rank based on mastery and activity
+      const { results } = await c.env.DB.prepare(`
+        SELECT 
+          u.name, 
+          u.id,
+          (SELECT SUM(score * level) FROM student_mastery WHERE student_id = u.id) as mastery_pts,
+          (SELECT COUNT(*) FROM progress_logs WHERE student_id = u.id) as activity_pts
+        FROM users u 
+        WHERE u.role = 'student'
+        LIMIT 10
+      `).all();
+
+      const ranked = results.map((r: any) => {
+        const total = (Number(r.mastery_pts) || 0) + ((Number(r.activity_pts) || 0) * 10);
+
+        // Ranking Logic
+        let rankLabel = 'Novice';
+        if (total > 1000) rankLabel = 'Quasar Commander';
+        else if (total > 500) rankLabel = 'Nebula Explorer';
+        else if (total > 200) rankLabel = 'Orbit Specialist';
+        else if (total > 50) rankLabel = 'Apollo Cadet';
+
+        return {
+          name: r.name || 'Anonymous Learner',
+          score: total,
+          rank: rankLabel
+        };
+      }).sort((a, b) => b.score - a.score);
+
+      return c.json(ranked);
+    } catch (e) {
+      console.error('Leaderboard fetch failed', e);
+      return c.json([], 500);
+    }
+  }
+  return c.json([]);
+});
+
+app.get('/api/student/squads', authMiddleware, async (c) => {
+  const payload = c.get('jwtPayload') as any;
+  if (c.env.DB) {
+    try {
+      const { results } = await c.env.DB.prepare(`
+        SELECT a.id as assignment_id, u.name as student_name
+        FROM assignments a
+        JOIN enrollments e ON a.class_id = e.class_id
+        JOIN users u ON e.student_id = u.id
+        WHERE a.class_id IN (SELECT class_id FROM enrollments WHERE student_id = ?)
+        AND u.id != ?
+      `).bind(payload.id, payload.id).all();
+
+      const squads = (results || []).reduce((acc: any, curr: any) => {
+        if (!acc[curr.assignment_id]) acc[curr.assignment_id] = [];
+        acc[curr.assignment_id].push(curr.student_name);
+        return acc;
+      }, {});
+
+      return c.json(squads);
+    } catch (e) {
+      console.error('Squad fetch failed', e);
+      return c.json({});
+    }
+  }
+  return c.json({});
+});
+
 app.get('/api/student/recommendations', authMiddleware, async (c) => {
   const payload = c.get('jwtPayload') as any;
   const apiKey = (c.env as any).GEMINI_API_KEY;
@@ -458,22 +677,102 @@ app.get('/api/student/recommendations', authMiddleware, async (c) => {
   return c.json(recs);
 })
 
+app.post('/api/ai/generate-study-guide', authMiddleware, async (c) => {
+  const { title, subject, description } = await c.req.json();
+  if (!title) return c.json({ error: 'Missing assignment title' }, 400);
+
+  try {
+    const prompt = `You are a helpful STEM tutor. Generate a comprehensive, structured study guide for a student working on the following assignment:
+    Subject: ${subject || 'General'}
+    Title: ${title}
+    Description: ${description || 'No detailed instructions.'}
+
+    The study guide should include:
+    1. Key Concepts: A list of core ideas to understand.
+    2. Step-by-Step Approach: How to tackle the assignment.
+    3. Practice Questions: 3 conceptual questions to test understanding.
+    4. Helpful Tips: Pro-tips for mastering the topic.
+
+    Format the response in clear, beautiful Markdown. Use headers, bullet points, and bold text for readability.`;
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${(c.env as any).GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
+
+    const data = await res.json() as any;
+    const studyGuide = data.candidates?.[0]?.content?.parts?.[0]?.text || 'I could not generate a study guide at this time.';
+
+    return c.json({ studyGuide });
+  } catch (err: any) {
+    console.error('Study guide generation failed', err);
+    return c.json({ error: 'Failed to generate study guide' }, 500);
+  }
+});
+
+app.post('/api/ai/draft-feedback', authMiddleware, roleMiddleware(['teacher']), async (c) => {
+  const { submissionContent, title, description } = await c.req.json();
+  if (!submissionContent) return c.json({ error: 'Missing submission content' }, 400);
+
+  try {
+    const prompt = `You are a supportive STEM teacher at Apollo Academy. Provide constructive, professional, and encouraging feedback for the following student submission:
+    
+    Assignment: ${title}
+    Description: ${description || 'No detailed instructions.'}
+    Student Submission: "${submissionContent}"
+    
+    Guidelines for feedback:
+    1. Acknowledge effort and specific strengths.
+    2. Provide 1-2 clear areas for improvement or further exploration.
+    3. Maintain an encouraging and professional tone.
+    4. Keep it concise (max 150 words).`;
+
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${(c.env as any).GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
+
+    const data = await res.json() as any;
+    const draft = data.candidates?.[0]?.content?.parts?.[0]?.text || 'I could not generate a feedback draft at this time.';
+
+    return c.json({ draft });
+  } catch (err: any) {
+    console.error('Feedback draft generation failed', err);
+    return c.json({ error: 'Failed to generate feedback draft' }, 500);
+  }
+});
+
 app.post('/api/ai/generate-missions', authMiddleware, async (c) => {
   const payload = c.get('jwtPayload') as any;
   const apiKey = (c.env as any).GEMINI_API_KEY;
 
   try {
-    // 1. Fetch student data for personalization
-    const mastery = await c.env.DB.prepare(
-      'SELECT subject, score, level FROM student_mastery WHERE student_id = ?'
-    ).bind(payload.id).all();
+    // 1. Fetch student context (mastery + pending tasks)
+    const [mastery, pendingAsgns, pendingTasks] = await Promise.all([
+      c.env.DB.prepare('SELECT subject, score, level FROM student_mastery WHERE student_id = ?').bind(payload.id).all(),
+      c.env.DB.prepare('SELECT title, subject, due_date FROM assignments a JOIN enrollments e ON a.class_id = e.class_id WHERE e.student_id = ? AND status != "submitted"').bind(payload.id).all(),
+      c.env.DB.prepare('SELECT title, subject, due_date FROM student_tasks WHERE student_id = ? AND is_completed = 0').bind(payload.id).all()
+    ]);
 
-    const studentContext = mastery.results.length > 0
-      ? JSON.stringify(mastery.results)
-      : "New student with no prior data. Focus on foundational STEM concepts.";
+    const studentContext = {
+      mastery: mastery.results,
+      pending: [...(pendingAsgns.results || []), ...(pendingTasks.results || [])]
+    };
+
+    const contextString = mastery.results.length > 0 || studentContext.pending.length > 0
+      ? JSON.stringify(studentContext)
+      : "New student. Focus on foundational STEM concepts.";
 
     // 2. Call Gemini to generate 3 missions
-    const prompt = `Based on this student's mastery data: ${studentContext}, generate 3 short, engaging "Learning Missions" (each 3-5 words). Return them as a simple comma-separated string.`;
+    const prompt = `Based on this student's academic context (mastery and pending work): ${contextString}, generate 3 short, engaging "Learning Missions" (each 3-5 words). 
+    IMPORTANT: Prioritize missions that help the student prepare for or complete their PENDING assignments if any exist. 
+    Return them as a simple comma-separated string.`;
 
     const systemPrompt = "You are the Apollo Academy AI Coordinator. You create personalized, high-impact learning trajectories for STEM students.";
 
@@ -618,7 +917,7 @@ app.post('/api/ai/generate', async (c) => {
 
 app.post('/api/google/sync', authMiddleware, roleMiddleware(['student']), async (c) => {
   const payload = c.get('jwtPayload') as any;
-  const { token, link } = await c.req.json().catch(() => ({ token: null, link: null }));
+  const { token: providedToken, link } = await c.req.json().catch(() => ({ token: null, link: null }));
 
   if (c.env.DB) {
     try {
@@ -627,12 +926,17 @@ app.post('/api/google/sync', authMiddleware, roleMiddleware(['student']), async 
         await c.env.DB.prepare('UPDATE users SET google_classroom_link = ? WHERE id = ?').bind(link, payload.id).run();
       }
 
-      // 1. Real Sync Path (if token provided)
-      // In a real prod app, you'd exchange auth code for this token or retrieve from session
-      if (token && token.startsWith('sq.')) { // Simple check for 'sq' prefix often used in Google Classroom scopes or just presence
-        // Import dynamically to avoid circular dep issues if any, or just use imported
+      // Try to find a stored token
+      let tokenToUse = providedToken;
+      if (!tokenToUse) {
+        const stored = await c.env.DB.prepare('SELECT access_token FROM google_oauth_tokens WHERE user_id = ?').bind(payload.id).first() as any;
+        if (stored) tokenToUse = stored.access_token;
+      }
+
+      // 1. Real Sync Path (if token available)
+      if (tokenToUse && (tokenToUse.startsWith('sq.') || tokenToUse.length > 20)) {
         const { googleClassroom } = await import('./google_classroom');
-        const result = await googleClassroom.syncStudentCourses(c.env, token, payload.id);
+        const result = await googleClassroom.syncStudentCourses(c.env, tokenToUse, payload.id);
         return c.json({
           success: true,
           message: `Successfully synchronized! ${result.count} real assignments imported.`,
@@ -640,7 +944,7 @@ app.post('/api/google/sync', authMiddleware, roleMiddleware(['student']), async 
         });
       }
 
-      // 2. Mock/Demo Sync Path (Default)
+      // 2. Mock/Demo Sync Path (Default fallback if no real token)
       const mockClassId = 'default_class';
       const importedAssignments = [
         {
