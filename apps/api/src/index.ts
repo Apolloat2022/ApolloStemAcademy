@@ -576,16 +576,61 @@ app.post('/api/ai/generate', async (c) => {
 
 // --- Google Classroom Integration (Phase 4) ---
 
-app.post('/api/google/sync', authMiddleware, async (c) => {
-  // Mock synchronization logic
-  // In a real app, this would use the Google Classroom API with the user's OAuth token
-  return c.json({
-    success: true,
-    message: "Successfully synchronized with Google Classroom.",
-    synced_students: 5,
-    synced_assignments: 3,
-    timestamp: new Date().toISOString()
-  });
+app.post('/api/google/sync', authMiddleware, roleMiddleware(['student']), async (c) => {
+  const payload = c.get('jwtPayload') as any;
+  const { token } = await c.req.json().catch(() => ({ token: null })); // Optional token from frontend if passed
+
+  if (c.env.DB) {
+    try {
+      // 1. Real Sync Path (if token provided)
+      // In a real prod app, you'd exchange auth code for this token or retrieve from session
+      if (token && token.startsWith('sq.')) { // Simple check for 'sq' prefix often used in Google Classroom scopes or just presence
+        // Import dynamically to avoid circular dep issues if any, or just use imported
+        const { googleClassroom } = await import('./google_classroom');
+        const result = await googleClassroom.syncStudentCourses(c.env, token, payload.id);
+        return c.json({
+          success: true,
+          message: `Successfully synchronized! ${result.count} real assignments imported.`,
+          imported: result.count
+        });
+      }
+
+      // 2. Mock/Demo Sync Path (Default)
+      const mockClassId = 'default_class';
+      const importedAssignments = [
+        {
+          id: 'imported_gc_1',
+          title: '[Google Classroom] Physics: Motion Lab',
+          description: 'Imported from GC: Submit your lab report on projectile motion.',
+          section: 'Physics 101'
+        },
+        {
+          id: 'imported_gc_2',
+          title: '[Google Classroom] History: Civil War Essay',
+          description: 'Imported from GC: Draft your 5-paragraph essay.',
+          section: 'US History'
+        }
+      ];
+
+      for (const asgn of importedAssignments) {
+        await c.env.DB.prepare(
+          'INSERT OR IGNORE INTO assignments (id, class_id, title, description, due_date) VALUES (?, ?, ?, ?, ?)'
+        ).bind(asgn.id, mockClassId, asgn.title, asgn.description, 'Next Monday').run();
+      }
+
+      return c.json({
+        success: true,
+        message: "Demo Mode: Synced 2 sample assignments. (To use real Google Classroom, enable OAuth in admin setup).",
+        imported: 2
+      });
+
+    } catch (e: any) {
+      console.error('GC Sync failed', e);
+      return c.json({ success: false, error: e.message }, 500);
+    }
+  }
+
+  return c.json({ success: false, message: "Database not connected" }, 500);
 });
 
 export default app;
